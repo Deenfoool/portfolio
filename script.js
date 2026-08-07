@@ -86,3 +86,85 @@ async function load() {
 search.addEventListener('input', render);
 document.querySelector('#year').textContent = new Date().getFullYear();
 load();
+
+// Живая зелёная сетка на фоне: точки слегка смещаются волнами,
+// поэтому отдельные ячейки постоянно растягиваются и сжимаются.
+(function initAnimatedGrid(){
+  const canvas = document.querySelector('#grid-bg');
+  if (!canvas || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const ctx = canvas.getContext('2d');
+  const spacing = 72;
+  let width = 0, height = 0, dpr = 1;
+
+  function resize(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+
+  function point(col,row,t){
+    const x = col * spacing;
+    const y = row * spacing;
+    const wave1 = Math.sin(x * 0.010 + t * 0.00075 + Math.sin(y * 0.006)) * 15;
+    const wave2 = Math.cos(y * 0.012 - t * 0.00055 + Math.cos(x * 0.005)) * 12;
+    const ripple = Math.sin((x + y) * 0.004 - t * 0.0009) * 8;
+    return {
+      x: x + wave1 + ripple,
+      y: y + wave2 + ripple * 0.45
+    };
+  }
+
+  function draw(t){
+    ctx.clearRect(0,0,width,height);
+    const cols = Math.ceil(width / spacing) + 3;
+    const rows = Math.ceil(height / spacing) + 3;
+    ctx.lineWidth = 1;
+
+    for(let row = -1; row < rows; row++){
+      ctx.beginPath();
+      for(let col = -1; col < cols; col++){
+        const p = point(col,row,t);
+        if(col === -1) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
+      }
+      ctx.strokeStyle = 'rgba(163,230,53,0.095)';
+      ctx.stroke();
+    }
+
+    for(let col = -1; col < cols; col++){
+      ctx.beginPath();
+      for(let row = -1; row < rows; row++){
+        const p = point(col,row,t);
+        if(row === -1) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
+      }
+      ctx.strokeStyle = 'rgba(163,230,53,0.095)';
+      ctx.stroke();
+    }
+
+    // Несколько мягких "живых" участков, где сетка визуально сильнее пульсирует.
+    const spots = [
+      [width * 0.18, height * 0.24],
+      [width * 0.72, height * 0.38],
+      [width * 0.47, height * 0.78]
+    ];
+    spots.forEach(([sx,sy],i)=>{
+      const pulse = (Math.sin(t * 0.0011 + i * 2.2) + 1) * 0.5;
+      const radius = 90 + pulse * 80;
+      const glow = ctx.createRadialGradient(sx,sy,0,sx,sy,radius);
+      glow.addColorStop(0,'rgba(163,230,53,0.045)');
+      glow.addColorStop(1,'rgba(163,230,53,0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(sx-radius,sy-radius,radius*2,radius*2);
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  window.addEventListener('resize',resize,{passive:true});
+  requestAnimationFrame(draw);
+})();
