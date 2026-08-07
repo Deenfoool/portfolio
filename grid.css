@@ -1,1 +1,1 @@
-#grid-bg{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.5}body>*:not(#grid-bg):not(.noise){position:relative;z-index:1}@media(prefers-reduced-motion:reduce){#grid-bg{display:none}}
+#grid-bg{position:fixed;inset:0;width:100vw;height:100vh;display:block;pointer-events:none;z-index:0;opacity:.9;mix-blend-mode:screen}body>*:not(#grid-bg):not(.noise){position:relative;z-index:1}.noise{z-index:20!important}@media(max-width:600px){#grid-bg{opacity:.72}}@media(prefers-reduced-motion:reduce){#grid-bg{display:none}}
