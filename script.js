@@ -10,7 +10,7 @@ let activeLanguage = 'Все';
 const languageNames = { JavaScript:'JavaScript', TypeScript:'TypeScript', Python:'Python', HTML:'HTML', CSS:'CSS', Java:'Java', CPlusPlus:'C++', CSharp:'C#', Shell:'Shell', Go:'Go', Rust:'Rust', PHP:'PHP' };
 
 function esc(value='') {
-  return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  return String(value).replace(/[&<>'\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]));
 }
 function formatNumber(n) { return Intl.NumberFormat('ru-RU', { notation:'compact', maximumFractionDigits:1 }).format(n || 0); }
 function relativeDate(date) {
@@ -18,7 +18,17 @@ function relativeDate(date) {
   if(days === 0) return 'сегодня'; if(days === 1) return 'вчера'; if(days < 30) return `${days} дн. назад`;
   const months = Math.floor(days / 30); return `${months} мес. назад`;
 }
-function repoImage(repo) { return `https://opengraph.githubassets.com/1/${USER}/${repo.name}`; }
+
+// Для каждого проекта сначала используется portfolio.png из корня репозитория.
+// Если файла нет, карточка автоматически переключается на GitHub OpenGraph.
+function repoImage(repo) {
+  const branch = repo.default_branch || 'main';
+  return {
+    custom: `https://raw.githubusercontent.com/${USER}/${repo.name}/${encodeURIComponent(branch)}/portfolio.png`,
+    fallback: `https://opengraph.githubassets.com/1/${USER}/${repo.name}`
+  };
+}
+
 function getLanguages() {
   const langs = [...new Set(repos.map(r => r.language).filter(Boolean))];
   return ['Все', ...langs.slice(0, 7)];
@@ -34,9 +44,11 @@ function render() {
     return (!query || text.includes(query)) && (activeLanguage === 'Все' || repo.language === activeLanguage);
   });
   empty.hidden = shown.length !== 0;
-  grid.innerHTML = shown.map((repo, i) => `
+  grid.innerHTML = shown.map((repo, i) => {
+    const image = repoImage(repo);
+    return `
     <a class="project" href="${esc(repo.html_url)}" target="_blank" rel="noreferrer">
-      <div class="project-image"><img src="${esc(repoImage(repo))}" alt="" loading="lazy" onerror="this.style.display='none'"><span class="project-index">${String(i+1).padStart(2,'0')}</span></div>
+      <div class="project-image"><img src="${esc(image.custom)}" alt="${esc(repo.name)}" loading="lazy" onerror="this.onerror=null;this.src='${esc(image.fallback)}'"><span class="project-index">${String(i+1).padStart(2,'0')}</span></div>
       <div class="project-body">
         <div class="project-title"><span>${esc(repo.name)}</span><span>↗</span></div>
         <p class="project-desc">${esc(repo.description || 'Проект без описания — загляни в репозиторий, чтобы узнать больше.')}</p>
@@ -46,7 +58,8 @@ function render() {
           <span class="stars">★ ${formatNumber(repo.stargazers_count)}</span>
         </div>
       </div>
-    </a>`).join('');
+    </a>`;
+  }).join('');
 }
 async function load() {
   try {
