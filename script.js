@@ -1,5 +1,6 @@
 const USER = 'Deenfoool';
 const API = `https://api.github.com/users/${USER}/repos?per_page=100&sort=updated&direction=desc`;
+const HIDDEN_REPOS = new Set(['portfolio']);
 const grid = document.querySelector('#projects-grid');
 const search = document.querySelector('#search');
 const filters = document.querySelector('#filters');
@@ -29,6 +30,18 @@ function repoImage(repo) {
   };
 }
 
+// Предпочитаем явный homepage из настроек репозитория.
+// Если он не указан, но GitHub Pages включён, строим стандартный Pages URL.
+function repoSiteUrl(repo) {
+  const homepage = String(repo.homepage || '').trim();
+  if (/^https?:\/\//i.test(homepage)) return homepage;
+  if (!repo.has_pages) return '';
+
+  const pagesRoot = `https://${USER}.github.io`;
+  if (repo.name.toLowerCase() === `${USER.toLowerCase()}.github.io`) return `${pagesRoot}/`;
+  return `${pagesRoot}/${encodeURIComponent(repo.name)}/`;
+}
+
 function getLanguages() {
   const langs = [...new Set(repos.map(r => r.language).filter(Boolean))];
   return ['Все', ...langs.slice(0, 7)];
@@ -46,19 +59,28 @@ function render() {
   empty.hidden = shown.length !== 0;
   grid.innerHTML = shown.map((repo, i) => {
     const image = repoImage(repo);
+    const siteUrl = repoSiteUrl(repo);
     return `
-    <a class="project" href="${esc(repo.html_url)}" target="_blank" rel="noreferrer">
-      <div class="project-image"><img src="${esc(image.custom)}" alt="${esc(repo.name)}" loading="lazy" onerror="this.onerror=null;this.src='${esc(image.fallback)}'"><span class="project-index">${String(i+1).padStart(2,'0')}</span></div>
+    <article class="project">
+      <a class="project-cover" href="${esc(repo.html_url)}" target="_blank" rel="noreferrer" aria-label="Открыть ${esc(repo.name)} на GitHub">
+        <div class="project-image"><img src="${esc(image.custom)}" alt="${esc(repo.name)}" loading="lazy" onerror="this.onerror=null;this.src='${esc(image.fallback)}'"><span class="project-index">${String(i+1).padStart(2,'0')}</span></div>
+      </a>
       <div class="project-body">
-        <div class="project-title"><span>${esc(repo.name)}</span><span>↗</span></div>
+        <a class="project-title-link" href="${esc(repo.html_url)}" target="_blank" rel="noreferrer">
+          <div class="project-title"><strong>${esc(repo.name)}</strong><span>↗</span></div>
+        </a>
         <p class="project-desc">${esc(repo.description || 'Проект без описания — загляни в репозиторий, чтобы узнать больше.')}</p>
         <div class="project-meta">
           ${repo.language ? `<span class="language"><i class="lang-dot"></i>${esc(languageNames[repo.language] || repo.language)}</span>` : '<span class="language">Project</span>'}
           <span>${relativeDate(repo.updated_at)}</span>
           <span class="stars">★ ${formatNumber(repo.stargazers_count)}</span>
         </div>
+        <div class="project-actions">
+          <a class="project-action github" href="${esc(repo.html_url)}" target="_blank" rel="noreferrer">GitHub <span>↗</span></a>
+          ${siteUrl ? `<a class="project-action site" href="${esc(siteUrl)}" target="_blank" rel="noreferrer">Открыть сайт <span>↗</span></a>` : ''}
+        </div>
       </div>
-    </a>`;
+    </article>`;
   }).join('');
 }
 async function load() {
@@ -71,7 +93,7 @@ async function load() {
       repos = await response.json();
       localStorage.setItem('deenfoool-repos', JSON.stringify({time:Date.now(), data:repos}));
     }
-    repos = repos.filter(r => !r.fork && !r.archived);
+    repos = repos.filter(r => !r.fork && !r.archived && !HIDDEN_REPOS.has(r.name.toLowerCase()));
     document.querySelector('#repo-count').textContent = repos.length;
     document.querySelector('#star-count').textContent = formatNumber(repos.reduce((s,r)=>s+r.stargazers_count,0));
     document.querySelector('#language-count').textContent = new Set(repos.map(r=>r.language).filter(Boolean)).size;
