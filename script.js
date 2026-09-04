@@ -20,12 +20,12 @@ function relativeDate(date) {
   const months = Math.floor(days / 30); return `${months} мес. назад`;
 }
 
-// Для каждого проекта сначала используется portfolio.png из корня репозитория.
+// Обложка проекта хранится в portfolio/cover.png.
 // Если файла нет, карточка автоматически переключается на GitHub OpenGraph.
 function repoImage(repo) {
   const branch = repo.default_branch || 'main';
   return {
-    custom: `https://raw.githubusercontent.com/${USER}/${repo.name}/${encodeURIComponent(branch)}/portfolio.png`,
+    custom: `https://raw.githubusercontent.com/${USER}/${repo.name}/${encodeURIComponent(branch)}/portfolio/cover.png`,
     fallback: `https://opengraph.githubassets.com/1/${USER}/${repo.name}`
   };
 }
