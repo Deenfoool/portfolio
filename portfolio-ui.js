@@ -35,7 +35,7 @@
   const cover=r=>{
     const branch=r.default_branch||'main';
     return {
-      custom:`https://raw.githubusercontent.com/${USER}/${r.name}/${encodeURIComponent(branch)}/portfolio.png`,
+      custom:`https://raw.githubusercontent.com/${USER}/${r.name}/${encodeURIComponent(branch)}/portfolio/cover.png`,
       fallback:`https://opengraph.githubassets.com/1/${USER}/${r.name}`
     };
   };
@@ -99,8 +99,11 @@
 
   function galleryCandidates(r){
     const branch=r.default_branch||'main';
-    const base=`https://raw.githubusercontent.com/${USER}/${r.name}/${encodeURIComponent(branch)}`;
-    return [`${base}/portfolio.png`,...Array.from({length:5},(_,i)=>`${base}/portfolio-${i+1}.png`)];
+    const base=`https://raw.githubusercontent.com/${USER}/${r.name}/${encodeURIComponent(branch)}/portfolio`;
+    return [
+      `${base}/cover.png`,
+      ...Array.from({length:10},(_,i)=>`${base}/gallery/${String(i+1).padStart(2,'0')}.png`)
+    ];
   }
 
   const probe=url=>new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(url);img.onerror=()=>resolve(null);img.src=url;});
