@@ -18,6 +18,7 @@
   <header class="nav">
     <a class="brand" href="#top" aria-label="Deenfoool home"><span class="brand-dot"></span>deenfoool</a>
     <nav>
+      <a href="#featured">Избранное</a>
       <a href="#projects">Проекты</a>
       <a href="#about">Обо мне</a>
       <a class="nav-github" href="https://github.com/Deenfoool" target="_blank" rel="noreferrer">GitHub ↗</a>
@@ -31,7 +32,7 @@
         <h1>Привет, я <span>DeenFoool.</span><br>Создаю вещи, которые<br>хочется запустить.</h1>
         <p class="hero-text">Разрабатываю веб‑проекты, инструменты и эксперименты. Здесь — актуальные проекты прямо из моего GitHub.</p>
         <div class="hero-actions">
-          <a class="button primary" href="#projects">Смотреть проекты <span>↓</span></a>
+          <a class="button primary" href="#featured">Смотреть лучшее <span>↓</span></a>
           <a class="button ghost" href="https://github.com/Deenfoool" target="_blank" rel="noreferrer">Открыть GitHub ↗</a>
         </div>
       </div>
@@ -55,9 +56,19 @@
       <div><b id="follower-count">—</b><span>подписчиков</span></div>
     </section>
 
+    <section class="featured-section" id="featured">
+      <div class="section-heading">
+        <div><p class="eyebrow">FEATURED WORK</p><h2>Избранные проекты</h2></div>
+        <p class="section-note">Главные проекты — крупнее и заметнее.<br>Topic <b>featured</b> на GitHub закрепляет проект здесь.</p>
+      </div>
+      <div id="featured-grid" class="featured-grid" aria-live="polite">
+        <div class="loading-card"><span class="loader"></span>Выбираю проекты...</div>
+      </div>
+    </section>
+
     <section class="projects-section" id="projects">
       <div class="section-heading">
-        <div><p class="eyebrow">SELECTED WORK</p><h2>Проекты</h2></div>
+        <div><p class="eyebrow">ALL PROJECTS</p><h2>Все проекты</h2></div>
         <p class="section-note">Карточки подгружаются автоматически<br>из публичных репозиториев GitHub.</p>
       </div>
       <div class="toolbar">
@@ -98,6 +109,39 @@
     <span class="footer-center">built with curiosity &amp; caffeine</span>
     <a href="https://github.com/Deenfoool" target="_blank" rel="noreferrer">github.com/Deenfoool ↗</a>
   </footer>
+
+  <div class="project-modal" id="project-modal" hidden>
+    <div class="project-modal-backdrop" data-modal-close></div>
+    <section class="project-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="modal-close" type="button" data-modal-close aria-label="Закрыть">×</button>
+      <div class="modal-gallery" id="modal-gallery">
+        <div class="gallery-stage">
+          <img id="gallery-image" alt="" decoding="async">
+          <div class="gallery-loading" id="gallery-loading"><span class="loader"></span>Загружаю галерею...</div>
+          <button class="gallery-nav prev" id="gallery-prev" type="button" aria-label="Предыдущее изображение">←</button>
+          <button class="gallery-nav next" id="gallery-next" type="button" aria-label="Следующее изображение">→</button>
+        </div>
+        <div class="gallery-footer">
+          <div class="gallery-dots" id="gallery-dots"></div>
+          <span id="gallery-count">1 / 1</span>
+        </div>
+      </div>
+      <div class="modal-content">
+        <p class="eyebrow">PROJECT CASE</p>
+        <h2 id="modal-title">Project</h2>
+        <p class="modal-description" id="modal-description"></p>
+        <div class="modal-topics" id="modal-topics"></div>
+        <dl class="modal-facts">
+          <div><dt>Основной язык</dt><dd id="modal-language">—</dd></div>
+          <div><dt>Обновлён</dt><dd id="modal-updated">—</dd></div>
+          <div><dt>Stars</dt><dd id="modal-stars">—</dd></div>
+          <div><dt>Формат</dt><dd id="modal-format">Project</dd></div>
+        </dl>
+        <div class="modal-actions" id="modal-actions"></div>
+      </div>
+    </section>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
