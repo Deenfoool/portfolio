@@ -34,6 +34,8 @@ Recommended format:
 - Must still read clearly when cropped in a card.
 - Should represent the project itself, not a generic GitHub/social preview.
 
+The frontend keeps a GitHub OpenGraph fallback so one broken cover does not break the page, but a missing cover remains a standards violation and should produce a console warning.
+
 ## Gallery
 
 `portfolio/gallery/` is recommended for projects where screenshots materially help explain the work: web apps, visual tools, games, editors, 3D projects and mods with meaningful in-game visuals.
@@ -50,6 +52,8 @@ Guidelines:
 - 3–6 strong screenshots are usually better than many repetitive images.
 - Do not require a gallery for backend-only services, libraries, tiny utilities or projects with nothing meaningful to show visually.
 - Do not copy random working assets into the gallery. Gallery images should be intentionally selected presentation screenshots.
+
+Gallery is not an inclusion gate. A valid project may appear with only `cover.png`; the modal falls back to the cover when no gallery images exist.
 
 ## Favicon
 
@@ -71,11 +75,21 @@ For GitHub Pages projects, inspect the branch that is actually published. Do not
 
 ## project.json
 
-Every portfolio project should have `portfolio/project.json` validated against:
+Every portfolio project must have `portfolio/project.json` validated against:
 
 ```text
 https://raw.githubusercontent.com/Deenfoool/portfolio/main/schemas/project.schema.json
 ```
+
+`portfolio/project.json` is the authoritative inclusion gate for the site:
+
+- missing file → repository is hidden;
+- invalid metadata → repository is hidden and a console warning is emitted;
+- valid metadata → repository can appear in **All Projects**;
+- `featured: true` → repository can also appear in **Featured**;
+- `featured: false` → repository stays out of **Featured**, regardless of GitHub topics.
+
+Statistics, language filters and the project grid are calculated only from repositories with valid metadata. GitHub topic `featured` is not authoritative once `project.json` is used.
 
 Base example:
 
