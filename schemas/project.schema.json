@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Deenfoool/portfolio/main/schemas/project.schema.json",
+  "title": "Deenfoool Portfolio Project Metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "title", "kind", "status", "featured", "primaryAction"],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tagline": {
+      "type": "string",
+      "maxLength": 180
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["web", "app", "game", "mod", "tool", "service", "library", "plugin", "other"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "released", "experimental", "paused", "archived"]
+    },
+    "featured": {
+      "type": "boolean"
+    },
+    "tags": {
+      "type": "array",
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 32
+      }
+    },
+    "primaryAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "label"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["website", "download", "github", "details"]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48
+        },
+        "source": {
+          "type": "string",
+          "enum": ["homepage", "github-pages", "github-release", "direct", "repository"]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "assetPattern": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        }
+      }
+    }
+  }
+}
