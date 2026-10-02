@@ -6,6 +6,10 @@
   "additionalProperties": false,
   "required": ["version", "title", "kind", "status", "featured", "primaryAction"],
   "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri"
+    },
     "version": {
       "type": "integer",
       "const": 1
