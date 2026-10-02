@@ -1,10 +1,15 @@
 (() => {
   const USER='Deenfoool';
-  const API=`https://api.github.com/users/${USER}/repos?per_page=100&sort=updated&direction=desc`;
-  const HIDDEN=new Set(['portfolio']);
+  const SCHEMA_URL='https://raw.githubusercontent.com/Deenfoool/portfolio/main/schemas/project.schema.json';
   const ACTION_TYPES=new Set(['website','download','github','details']);
+  const KINDS=new Set(['web','app','game','mod','tool','service','library','plugin','other']);
+  const STATUSES=new Set(['active','released','experimental','paused','archived']);
+  const ACTION_SOURCES=new Set(['homepage','github-pages','github-release','direct','repository']);
+  const META_KEYS=new Set(['$schema','version','title','tagline','kind','status','featured','tags','primaryAction']);
+  const ACTION_KEYS=new Set(['type','label','source','url','assetPattern']);
   const KIND_LABELS={web:'Web',app:'App',game:'Game',mod:'Mod',tool:'Tool',service:'Service',library:'Library',plugin:'Plugin',other:'Project'};
   const STATUS_LABELS={active:'Active',released:'Released',experimental:'Experimental',paused:'Paused',archived:'Archived'};
+
   const featuredGrid=document.querySelector('#featured-grid');
   const projectsGrid=document.querySelector('#projects-grid');
   const modal=document.querySelector('#project-modal');
@@ -14,8 +19,7 @@
   const galleryNext=document.querySelector('#gallery-next');
   const galleryDots=document.querySelector('#gallery-dots');
   const galleryCount=document.querySelector('#gallery-count');
-  const metaCache=new Map();
-  const metaPromises=new Map();
+
   const releasePromises=new Map();
   let repos=[];
   let gallery=[];
@@ -26,13 +30,60 @@
   const esc=(v='')=>String(v).replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]));
   const rel=date=>{
     const d=Math.max(0,Math.floor((Date.now()-new Date(date))/86400000));
-    if(d===0)return'сегодня'; if(d===1)return'вчера'; if(d<30)return`${d} дн. назад`;
-    const m=Math.floor(d/30); return m<12?`${m} мес. назад`:new Intl.DateTimeFormat('ru-RU',{month:'short',year:'numeric'}).format(new Date(date));
+    if(d===0)return'сегодня';
+    if(d===1)return'вчера';
+    if(d<30)return`${d} дн. назад`;
+    const m=Math.floor(d/30);
+    return m<12?`${m} мес. назад`:new Intl.DateTimeFormat('ru-RU',{month:'short',year:'numeric'}).format(new Date(date));
   };
   const topics=r=>Array.isArray(r.topics)?r.topics:[];
   const visibleTopics=r=>topics(r).filter(t=>t.toLowerCase()!=='featured');
-  const topicFeatured=r=>topics(r).some(t=>t.toLowerCase()==='featured');
-  const cleanRepos=data=>(Array.isArray(data)?data:[]).filter(r=>!r.fork&&!r.archived&&!HIDDEN.has(String(r.name||'').toLowerCase()));
+
+  function isPlainObject(value){
+    return !!value&&typeof value==='object'&&!Array.isArray(value);
+  }
+
+  function hasOnlyKeys(value,allowed){
+    return Object.keys(value).every(key=>allowed.has(key));
+  }
+
+  function validUri(value){
+    if(typeof value!=='string'||!value.trim())return false;
+    try{new URL(value);return true;}catch{return false;}
+  }
+
+  function validMeta(meta){
+    if(!isPlainObject(meta)||!hasOnlyKeys(meta,META_KEYS))return false;
+    if(meta.$schema!==undefined&&meta.$schema!==SCHEMA_URL)return false;
+    if(meta.version!==1)return false;
+    if(typeof meta.title!=='string'||!meta.title.trim())return false;
+    if(meta.tagline!==undefined&&(typeof meta.tagline!=='string'||meta.tagline.length>180))return false;
+    if(!KINDS.has(meta.kind))return false;
+    if(!STATUSES.has(meta.status))return false;
+    if(typeof meta.featured!=='boolean')return false;
+
+    if(meta.tags!==undefined){
+      if(!Array.isArray(meta.tags)||meta.tags.length>8)return false;
+      if(new Set(meta.tags).size!==meta.tags.length)return false;
+      if(!meta.tags.every(tag=>typeof tag==='string'&&tag.length>=1&&tag.length<=32))return false;
+    }
+
+    const action=meta.primaryAction;
+    if(!isPlainObject(action)||!hasOnlyKeys(action,ACTION_KEYS))return false;
+    if(!ACTION_TYPES.has(action.type))return false;
+    if(typeof action.label!=='string'||!action.label.trim()||action.label.length>48)return false;
+    if(action.source!==undefined&&!ACTION_SOURCES.has(action.source))return false;
+    if(action.url!==undefined&&!validUri(action.url))return false;
+    if(action.assetPattern!==undefined&&(
+      typeof action.assetPattern!=='string'||
+      action.assetPattern.length<1||
+      action.assetPattern.length>120
+    ))return false;
+
+    return true;
+  }
+
+  const cleanRepos=data=>(Array.isArray(data)?data:[]).filter(r=>validMeta(r?.portfolioMeta));
   const pagesUrl=r=>`https://${USER}.github.io/${encodeURIComponent(r.name)}/`;
   const site=r=>{
     const home=String(r.homepage||'').trim();
@@ -47,38 +98,9 @@
       fallback:`https://opengraph.githubassets.com/1/${USER}/${r.name}`
     };
   };
-  const metaUrl=r=>{
-    const branch=r.default_branch||'main';
-    return `https://raw.githubusercontent.com/${USER}/${r.name}/${encodeURIComponent(branch)}/portfolio/project.json`;
-  };
 
-  function validMeta(meta){
-    return !!meta&&typeof meta==='object'&&meta.version===1&&typeof meta.title==='string'&&meta.title.trim()&&meta.primaryAction&&ACTION_TYPES.has(meta.primaryAction.type)&&typeof meta.primaryAction.label==='string'&&meta.primaryAction.label.trim();
-  }
-
-  async function loadProjectMeta(r){
-    if(!r?.name)return null;
-    if(metaCache.has(r.name))return metaCache.get(r.name);
-    if(metaPromises.has(r.name))return metaPromises.get(r.name);
-    const promise=fetch(metaUrl(r),{cache:'no-store'})
-      .then(async response=>{
-        if(response.status===404)return null;
-        if(!response.ok)throw new Error(`project.json ${response.status}`);
-        const meta=await response.json();
-        if(!validMeta(meta)){
-          console.warn(`[Portfolio] Invalid project.json for ${r.name}`);
-          return null;
-        }
-        return meta;
-      })
-      .catch(()=>null)
-      .then(meta=>{
-        metaCache.set(r.name,meta);
-        metaPromises.delete(r.name);
-        return meta;
-      });
-    metaPromises.set(r.name,promise);
-    return promise;
+  function isFeatured(meta){
+    return meta?.featured===true;
   }
 
   function globRegex(pattern='*'){
@@ -89,35 +111,42 @@
   async function latestReleaseTarget(r,pattern){
     const key=`${r.name}:${pattern||'*'}`;
     if(releasePromises.has(key))return releasePromises.get(key);
-    const promise=fetch(`https://api.github.com/repos/${USER}/${encodeURIComponent(r.name)}/releases/latest`,{headers:{Accept:'application/vnd.github+json'}})
+
+    const promise=fetch(`https://api.github.com/repos/${USER}/${encodeURIComponent(r.name)}/releases/latest`,{
+      headers:{Accept:'application/vnd.github+json'}
+    })
       .then(async response=>{
         if(!response.ok)return null;
         const release=await response.json();
         const assets=Array.isArray(release.assets)?release.assets:[];
         const matcher=pattern?globRegex(pattern):null;
         const asset=matcher?assets.find(item=>matcher.test(item.name||'')):assets[0];
+
         if(asset?.browser_download_url){
-          return {href:asset.browser_download_url,version:release.tag_name||'',fileName:asset.name||'',size:asset.size||0,indirect:false};
+          return {
+            href:asset.browser_download_url,
+            version:release.tag_name||'',
+            fileName:asset.name||'',
+            size:asset.size||0,
+            indirect:false
+          };
         }
-        if(release.html_url)return {href:release.html_url,version:release.tag_name||'',fileName:'',size:0,indirect:true};
+        if(release.html_url){
+          return {href:release.html_url,version:release.tag_name||'',fileName:'',size:0,indirect:true};
+        }
         return null;
       })
       .catch(()=>null);
+
     releasePromises.set(key,promise);
     return promise;
   }
 
   async function resolvePrimaryAction(r,meta){
-    if(!meta?.primaryAction){
-      const live=site(r);
-      return live
-        ? {type:'website',label:'Открыть сайт',href:live}
-        : {type:'github',label:'GitHub',href:r.html_url};
-    }
-
     const action=meta.primaryAction;
-    if(action.type==='details')return {type:'details',label:action.label||'Подробнее',href:''};
-    if(action.type==='github')return {type:'github',label:action.label||'GitHub',href:action.url||r.html_url};
+
+    if(action.type==='details')return {type:'details',label:action.label,href:''};
+    if(action.type==='github')return {type:'github',label:action.label,href:action.url||r.html_url};
 
     if(action.type==='website'){
       let href='';
@@ -126,20 +155,26 @@
       else if(action.source==='github-pages')href=site(r)||pagesUrl(r);
       else if(action.source==='repository')href=r.html_url;
       else href=site(r);
-      return {type:'website',label:action.label||'Открыть сайт',href:href||r.html_url};
+      return {type:'website',label:action.label,href:href||r.html_url};
     }
 
     if(action.type==='download'){
       if(action.source==='github-release'){
         const release=await latestReleaseTarget(r,action.assetPattern);
-        if(release)return {type:'download',label:action.label||'Скачать',...release};
-        return {type:'download',label:action.label||'Скачать',href:`https://github.com/${USER}/${encodeURIComponent(r.name)}/releases`,indirect:true};
+        if(release)return {type:'download',label:action.label,...release};
+        return {
+          type:'download',
+          label:action.label,
+          href:`https://github.com/${USER}/${encodeURIComponent(r.name)}/releases`,
+          indirect:true
+        };
       }
+
       const href=action.url||(
         action.source==='repository' ? r.html_url :
         action.source==='homepage' ? String(r.homepage||'').trim() : ''
       );
-      return {type:'download',label:action.label||'Скачать',href:href||r.html_url,indirect:!action.url};
+      return {type:'download',label:action.label,href:href||r.html_url,indirect:!action.url};
     }
 
     return {type:'details',label:'Подробнее',href:''};
@@ -152,29 +187,19 @@
     return `<a class="${esc(className)} ${action.type==='download'?'download':''}" href="${esc(action.href)}" target="_blank" rel="noreferrer" data-action-type="${esc(action.type)}" data-action-label="${esc(action.label)}" title="${esc(title)}">${esc(action.label)} <span>${glyph}</span></a>`;
   }
 
-  function readCachedRepos(){
-    try{
-      const cached=JSON.parse(localStorage.getItem('deenfoool-repos')||'null');
-      return cleanRepos(cached?.data);
-    }catch{return[];}
-  }
-
-  function isFeatured(r,meta){
-    return typeof meta?.featured==='boolean'?meta.featured:topicFeatured(r);
-  }
-
   function featuredCard(r,meta){
     const img=cover(r);
-    const tags=(Array.isArray(meta?.tags)&&meta.tags.length?meta.tags:visibleTopics(r)).slice(0,3);
-    const title=meta?.title||r.name;
-    const desc=meta?.tagline||r.description||'Проект из моего GitHub — открой карточку, чтобы посмотреть подробнее.';
+    const tags=(Array.isArray(meta.tags)&&meta.tags.length?meta.tags:visibleTopics(r)).slice(0,3);
+    const title=meta.title;
+    const desc=meta.tagline||r.description||'Проект из моего GitHub — открой карточку, чтобы посмотреть подробнее.';
+
     return `<article class="featured-card" data-repo="${esc(r.name)}">
       <button class="featured-media" type="button" data-project-detail="${esc(r.name)}">
-        <img src="${esc(img.custom)}" alt="${esc(title)}" loading="lazy" onerror="this.onerror=null;this.src='${esc(img.fallback)}'">
+        <img src="${esc(img.custom)}" alt="${esc(title)}" loading="lazy" data-featured-cover="${esc(r.name)}" onerror="if(!this.dataset.fallbackApplied){this.dataset.fallbackApplied='1';console.warn('[Portfolio] ${esc(r.name)}: portfolio/cover.png is missing or unavailable; using GitHub OpenGraph fallback');this.src='${esc(img.fallback)}'}">
         <span class="featured-badge">FEATURED</span>
       </button>
       <div class="featured-body">
-        <div class="featured-kicker">${esc(r.language||meta?.kind||'Project')} · ${rel(r.updated_at)}</div>
+        <div class="featured-kicker">${esc(r.language||meta.kind||'Project')} · ${rel(r.updated_at)}</div>
         <button class="featured-title" type="button" data-project-detail="${esc(r.name)}">${esc(title)} <span>↗</span></button>
         <p>${esc(desc)}</p>
         ${tags.length?`<div class="featured-topics">${tags.map(t=>`<span>${esc(t)}</span>`).join('')}</div>`:''}
@@ -189,11 +214,16 @@
   async function renderFeatured(){
     if(!featuredGrid)return;
     const request=++featuredRenderRequest;
-    const entries=await Promise.all(repos.map(async r=>({r,meta:await loadProjectMeta(r)})));
+    const entries=repos
+      .map(r=>({r,meta:r.portfolioMeta}))
+      .filter(({meta})=>validMeta(meta));
+
+    const list=entries.filter(({meta})=>isFeatured(meta)).slice(0,3);
     if(request!==featuredRenderRequest)return;
-    const pinned=entries.filter(({r,meta})=>isFeatured(r,meta));
-    const list=(pinned.length?pinned:entries).slice(0,3);
-    featuredGrid.innerHTML=list.length?list.map(({r,meta})=>featuredCard(r,meta)).join(''):'<div class="loading-card">Пока нет проектов для показа.</div>';
+
+    featuredGrid.innerHTML=list.length
+      ? list.map(({r,meta})=>featuredCard(r,meta)).join('')
+      : '<div class="loading-card">Избранных проектов пока нет.</div>';
 
     await Promise.all(Array.from(featuredGrid.querySelectorAll('.featured-card')).map(async card=>{
       const entry=list.find(item=>item.r.name===card.dataset.repo);
@@ -208,21 +238,29 @@
     try{return decodeURIComponent(new URL(href).pathname.split('/').filter(Boolean).pop()||'')}catch{return'';}
   }
 
+  function findRepo(name){
+    return repos.find(repo=>repo.name===name)||null;
+  }
+
   async function hydrateProjectCard(card,name){
     if(!card||card.dataset.metadataLoaded)return;
     card.dataset.metadataLoaded='1';
-    const r=await ensureRepo(name);
-    if(!r)return;
-    const meta=await loadProjectMeta(r);
-    if(!meta)return;
 
+    const r=findRepo(name);
+    if(!r||!validMeta(r.portfolioMeta)){
+      card.remove();
+      return;
+    }
+
+    const meta=r.portfolioMeta;
     const strong=card.querySelector('.project-title strong');
-    if(strong&&meta.title)strong.textContent=meta.title;
+    if(strong)strong.textContent=meta.title;
     const desc=card.querySelector('.project-desc');
     if(desc&&meta.tagline)desc.textContent=meta.tagline;
 
     const actions=card.querySelector('.project-actions');
     if(!actions)return;
+
     actions.querySelectorAll('.project-action.site,.project-action.meta-action').forEach(el=>el.remove());
     const action=await resolvePrimaryAction(r,meta);
     if(action.type!=='details'&&action.type!=='github'){
@@ -232,6 +270,7 @@
 
   function enhanceProjectCards(){
     if(!projectsGrid)return;
+
     projectsGrid.querySelectorAll('.project').forEach(card=>{
       const title=card.querySelector('.project-title strong')?.textContent?.trim();
       const githubLink=card.querySelector('a[href*="github.com/Deenfoool/"]');
@@ -259,12 +298,21 @@
     ];
   }
 
-  const probe=url=>new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(url);img.onerror=()=>resolve(null);img.src=url;});
+  const probe=url=>new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>resolve(url);
+    img.onerror=()=>resolve(null);
+    img.src=url;
+  });
 
   function updateGallery(name='Project'){
     const total=gallery.length||1;
-    if(gallery.length){galleryImage.src=gallery[galleryIndex];galleryImage.alt=`${name} — изображение ${galleryIndex+1}`;}
-    galleryPrev.hidden=total<=1; galleryNext.hidden=total<=1;
+    if(gallery.length){
+      galleryImage.src=gallery[galleryIndex];
+      galleryImage.alt=`${name} — изображение ${galleryIndex+1}`;
+    }
+    galleryPrev.hidden=total<=1;
+    galleryNext.hidden=total<=1;
     galleryCount.textContent=`${gallery.length?galleryIndex+1:1} / ${total}`;
     galleryDots.innerHTML=gallery.map((_,i)=>`<button class="gallery-dot ${i===galleryIndex?'active':''}" type="button" data-gallery-index="${i}" aria-label="Изображение ${i+1}"></button>`).join('');
   }
@@ -282,54 +330,52 @@
     galleryImage.removeAttribute('src');
     galleryLoading.hidden=false;
     updateGallery(title);
-    const found=(await Promise.all(galleryCandidates(r).map(probe))).filter(Boolean);
+
+    const candidates=galleryCandidates(r);
+    const found=(await Promise.all(candidates.map(probe))).filter(Boolean);
     if(id!==galleryRequest)return;
+
+    if(!found.includes(candidates[0])){
+      console.warn(`[Portfolio] ${r.name}: portfolio/cover.png is missing or unavailable; modal will use GitHub OpenGraph fallback`);
+    }
+
     gallery=found.length?found:[cover(r).fallback];
     galleryLoading.hidden=true;
     updateGallery(title);
   }
 
-  async function ensureRepo(name){
-    let r=repos.find(x=>x.name===name);
-    if(r&&Array.isArray(r.topics))return r;
-    try{
-      const response=await fetch(`https://api.github.com/repos/${USER}/${encodeURIComponent(name)}`,{headers:{Accept:'application/vnd.github+json'}});
-      if(!response.ok)throw new Error(`GitHub API ${response.status}`);
-      const fresh=await response.json();
-      const idx=repos.findIndex(x=>x.name===fresh.name);
-      if(idx>=0)repos[idx]=fresh;else repos.push(fresh);
-      return fresh;
-    }catch{return r||null;}
-  }
-
-  function formatLabel(meta,r){
-    if(!meta)return site(r)?'Live project':'Open source';
+  function formatLabel(meta){
     const kind=KIND_LABELS[meta.kind]||'Project';
     const status=STATUS_LABELS[meta.status]||'';
     return status?`${kind} · ${status}`:kind;
   }
 
   async function openModal(name){
-    const r=await ensureRepo(name);
-    if(!r)return;
-    const meta=await loadProjectMeta(r);
-    const title=meta?.title||r.name;
-    const tags=(Array.isArray(meta?.tags)&&meta.tags.length?meta.tags:visibleTopics(r));
+    const r=findRepo(name);
+    if(!r||!validMeta(r.portfolioMeta))return;
+
+    const meta=r.portfolioMeta;
+    const title=meta.title;
+    const tags=(Array.isArray(meta.tags)&&meta.tags.length?meta.tags:visibleTopics(r));
     const action=await resolvePrimaryAction(r,meta);
 
     document.querySelector('#modal-title').textContent=title;
-    document.querySelector('#modal-description').textContent=meta?.tagline||r.description||'Описание проекта пока не добавлено в GitHub. Можно перейти в репозиторий или открыть живую версию проекта.';
+    document.querySelector('#modal-description').textContent=meta.tagline||r.description||'Описание проекта пока не добавлено.';
     document.querySelector('#modal-language').textContent=r.language||'—';
     document.querySelector('#modal-updated').textContent=rel(r.updated_at);
     document.querySelector('#modal-stars').textContent=String(r.stargazers_count||0);
-    document.querySelector('#modal-format').textContent=formatLabel(meta,r);
+    document.querySelector('#modal-format').textContent=formatLabel(meta);
     document.querySelector('#modal-topics').innerHTML=tags.length?tags.map(t=>`<span>${esc(t)}</span>`).join(''):'<span>GitHub project</span>';
 
     const githubAction={type:'github',label:'GitHub',href:r.html_url};
     let actionsHtml='';
-    if(action.type==='github')actionsHtml=actionAnchor({...action,label:action.label||'GitHub'},'button primary');
-    else if(action.type==='details')actionsHtml=actionAnchor(githubAction,'button ghost');
-    else actionsHtml=`${actionAnchor(action,'button primary meta-primary-action')}${actionAnchor(githubAction,'button ghost')}`;
+    if(action.type==='github'){
+      actionsHtml=actionAnchor(action,'button primary');
+    }else if(action.type==='details'){
+      actionsHtml=actionAnchor(githubAction,'button ghost');
+    }else{
+      actionsHtml=`${actionAnchor(action,'button primary meta-primary-action')}${actionAnchor(githubAction,'button ghost')}`;
+    }
     document.querySelector('#modal-actions').innerHTML=actionsHtml;
 
     modal.hidden=false;
@@ -344,24 +390,39 @@
     galleryRequest++;
     modal.classList.remove('open');
     document.body.classList.remove('modal-open');
-    setTimeout(()=>{if(!modal.classList.contains('open'))modal.hidden=true;},180);
+    setTimeout(()=>{
+      if(!modal.classList.contains('open'))modal.hidden=true;
+    },180);
   }
 
   document.addEventListener('click',e=>{
     const detail=e.target.closest('[data-project-detail]');
-    if(detail){e.preventDefault();openModal(detail.dataset.projectDetail);return;}
+    if(detail){
+      e.preventDefault();
+      openModal(detail.dataset.projectDetail);
+      return;
+    }
 
     const card=e.target.closest('#projects-grid .project');
     const coverLink=e.target.closest('#projects-grid .project-cover, #projects-grid .project-title-link');
-    if(card&&coverLink){e.preventDefault();openModal(card.dataset.projectName||repoFromHref(coverLink.href));return;}
+    if(card&&coverLink){
+      e.preventDefault();
+      openModal(card.dataset.projectName||repoFromHref(coverLink.href));
+      return;
+    }
 
-    if(e.target.closest('[data-modal-close]')){closeModal();return;}
+    if(e.target.closest('[data-modal-close]')){
+      closeModal();
+      return;
+    }
+
     const dot=e.target.closest('[data-gallery-index]');
     if(dot)setGallery(Number(dot.dataset.galleryIndex));
   });
 
   galleryPrev?.addEventListener('click',()=>setGallery(galleryIndex-1));
   galleryNext?.addEventListener('click',()=>setGallery(galleryIndex+1));
+
   document.addEventListener('keydown',e=>{
     if(!modal||modal.hidden)return;
     if(e.key==='Escape')closeModal();
@@ -371,21 +432,19 @@
 
   if(projectsGrid){
     new MutationObserver(enhanceProjectCards).observe(projectsGrid,{childList:true,subtree:true});
+  }
+
+  function applyRepos(data){
+    repos=cleanRepos(data);
+    renderFeatured();
     enhanceProjectCards();
   }
 
-  repos=readCachedRepos();
-  if(repos.length){renderFeatured();enhanceProjectCards();}
+  document.addEventListener('portfolio:repos-ready',event=>{
+    applyRepos(event.detail?.repos||[]);
+  });
 
-  fetch(`${API}&_=${Date.now()}`,{headers:{Accept:'application/vnd.github+json'},cache:'no-store'})
-    .then(r=>{if(!r.ok)throw new Error(`GitHub API ${r.status}`);return r.json();})
-    .then(data=>{
-      repos=cleanRepos(data);
-      renderFeatured();
-      enhanceProjectCards();
-    })
-    .catch(()=>{
-      if(!repos.length&&featuredGrid)featuredGrid.innerHTML='<div class="loading-card">Избранные проекты временно не загрузились.</div>';
-      enhanceProjectCards();
-    });
+  if(Array.isArray(window.__portfolioRepos)){
+    applyRepos(window.__portfolioRepos);
+  }
 })();
