@@ -8,7 +8,7 @@
   "properties": {
     "$schema": {
       "type": "string",
-      "format": "uri"
+      "const": "https://raw.githubusercontent.com/Deenfoool/portfolio/main/schemas/project.schema.json"
     },
     "version": {
       "type": "integer",
