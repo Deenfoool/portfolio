@@ -25,22 +25,8 @@
       : `<i data-lucide="${icon}" aria-hidden="true"></i><span>${label}</span>`;
   };
 
-  const actionIcon = (type, href = '') => {
-    if (type === 'download') return 'download';
-    if (type === 'github' || href.includes('github.com')) return 'github';
-    if (type === 'details') return 'expand';
-    return 'external-link';
-  };
-
   function polish(root = document) {
     root.querySelectorAll?.('span').forEach(iconizeGlyphSpan);
-
-    root.querySelectorAll?.('[data-action-type]').forEach(el => {
-      if (el.dataset.iconized) return;
-      const type = el.dataset.actionType || 'website';
-      const label = el.dataset.actionLabel || el.textContent.replace(/[↗→↓↑]/g, '').trim();
-      setIconLabel(el, actionIcon(type, el.href || ''), label, type !== 'github');
-    });
 
     root.querySelectorAll?.('.nav-github').forEach(el => setIconLabel(el, 'github', 'GitHub'));
     root.querySelectorAll?.('footer a[href*="github.com"]').forEach(el => {
@@ -48,11 +34,11 @@
       setIconLabel(el, 'github', 'GitHub');
     });
     root.querySelectorAll?.('.project-action.github').forEach(el => setIconLabel(el, 'github', 'GitHub'));
-    root.querySelectorAll?.('.project-action.site:not([data-action-type])').forEach(el => setIconLabel(el, 'external-link', 'Открыть сайт', true));
+    root.querySelectorAll?.('.project-action.site').forEach(el => setIconLabel(el, 'external-link', 'Открыть сайт', true));
     root.querySelectorAll?.('.project-action.details').forEach(el => setIconLabel(el, 'expand', 'Подробнее', true));
 
-    root.querySelectorAll?.('.featured-actions .button.primary:not([data-action-type])').forEach(el => setIconLabel(el, 'expand', 'Подробнее', true));
-    root.querySelectorAll?.('.featured-actions .button.ghost[href]:not([data-action-type])').forEach(el => {
+    root.querySelectorAll?.('.featured-actions .button.primary').forEach(el => setIconLabel(el, 'expand', 'Подробнее', true));
+    root.querySelectorAll?.('.featured-actions .button.ghost[href]').forEach(el => {
       const isGithub = el.href.includes('github.com');
       setIconLabel(el, isGithub ? 'github' : 'external-link', isGithub ? 'GitHub' : 'Открыть сайт', !isGithub);
     });
@@ -86,7 +72,7 @@
       searchIcon.innerHTML = '<i data-lucide="search" aria-hidden="true"></i>';
     }
 
-    root.querySelectorAll?.('#modal-actions .button:not([data-action-type])').forEach(el => {
+    root.querySelectorAll?.('#modal-actions .button').forEach(el => {
       if (el.dataset.iconized) return;
       const isGithub = el.href?.includes('github.com');
       setIconLabel(el, isGithub ? 'github' : 'external-link', isGithub ? 'GitHub' : 'Открыть проект', !isGithub);
