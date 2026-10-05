@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Deenfoool">
+  <rect width="64" height="64" rx="14" fill="#09090b"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="12.5" fill="none" stroke="#27272a" stroke-width="3"/>
+  <path d="M18 16h12c11 0 18 6.4 18 16s-7 16-18 16H18V16Zm8 8v16h4c6.2 0 10-2.8 10-8s-3.8-8-10-8h-4Z" fill="#a3e635"/>
+  <circle cx="48" cy="16" r="4" fill="#a3e635"/>
+</svg>
