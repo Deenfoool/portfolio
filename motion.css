@@ -1,0 +1,47 @@
+/* Motion layer: restrained interaction and reveal effects. */
+.scroll-progress{position:fixed;z-index:1200;left:0;top:0;width:100%;height:2px;pointer-events:none;background:transparent}.scroll-progress>span{display:block;width:100%;height:100%;transform:scaleX(0);transform-origin:left center;background:#a3e635;box-shadow:0 0 14px rgba(163,230,53,.45);will-change:transform}
+
+.motion-enabled .motion-reveal{opacity:0;translate:0 22px;filter:blur(8px);transition:opacity .62s cubic-bezier(.2,.75,.25,1),translate .72s cubic-bezier(.2,.75,.25,1),filter .62s ease;transition-delay:var(--reveal-delay,0ms)}
+.motion-enabled .motion-reveal.is-visible{opacity:1;translate:0 0;filter:blur(0)}
+.motion-enabled .stats>div.motion-reveal{translate:0 14px}
+.motion-enabled .section-heading.motion-reveal{translate:-12px 18px}
+
+.hero-copy,.terminal-card{will-change:transform}
+@media(min-width:851px) and (pointer:fine){
+  .motion-enabled .hero-copy{transform:translate3d(var(--hero-copy-x,0),calc(var(--hero-copy-y,0) + var(--hero-scroll-copy,0px)),0);transition:transform .22s ease-out}
+  .motion-enabled .terminal-card{transform:translate3d(var(--hero-card-x,0),calc(var(--hero-card-y,0) + var(--hero-scroll-card,0px)),0) rotate(1.5deg);transition:transform .26s ease-out,border-color .25s ease,box-shadow .25s ease}
+  .motion-enabled .terminal-card:hover{border-color:#3b4827;box-shadow:0 34px 95px #000a,0 0 45px rgba(163,230,53,.045)}
+}
+.terminal-body .green{position:relative}.terminal-body .green::after{content:"";display:inline-block;width:7px;height:1.05em;margin-left:3px;vertical-align:-.15em;background:#a3e635;animation:terminal-caret 1.05s steps(1,end) infinite}@keyframes terminal-caret{50%{opacity:0}}
+
+@media(pointer:fine){
+  .motion-enabled .featured-card.motion-tilt{position:relative;transform:perspective(1000px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg));transform-style:preserve-3d;transition:transform .18s ease-out,border-color .2s ease,box-shadow .2s ease;will-change:transform}
+  .motion-enabled .featured-card.motion-tilt::after{content:"";position:absolute;z-index:3;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(360px circle at var(--light-x,50%) var(--light-y,50%),rgba(190,242,100,.12),transparent 45%);opacity:var(--light-opacity,0);transition:opacity .2s ease;mix-blend-mode:screen}
+  .motion-enabled .featured-card.motion-tilt:hover{border-color:#566a31;box-shadow:0 28px 70px #0008,0 0 45px rgba(163,230,53,.055)}
+  .motion-enabled .featured-card.motion-tilt .featured-media,.motion-enabled .featured-card.motion-tilt .featured-body{transform:translateZ(8px)}
+}
+
+.motion-enabled .motion-magnetic{translate:var(--mag-x,0px) var(--mag-y,0px);transition:translate .16s ease-out}
+.motion-enabled .motion-magnetic .lucide{will-change:transform}
+
+.project-image img{transform-origin:center center}.motion-enabled .project:hover .project-image img{transform:scale(1.055) translate3d(var(--cover-pan-x,0px),var(--cover-pan-y,0px),0)}
+
+#project-modal .project-modal-backdrop{transition:backdrop-filter .32s ease,background .32s ease}
+#project-modal .project-dialog{opacity:0;filter:blur(9px);transition:transform .34s cubic-bezier(.2,.8,.2,1),opacity .24s ease,filter .3s ease!important}
+#project-modal.open .project-dialog{opacity:1;filter:blur(0)}
+#gallery-image{transition:opacity .22s ease,transform .3s cubic-bezier(.2,.8,.2,1),filter .22s ease!important}
+#gallery-image.gallery-switching{opacity:.16;transform:scale(.985);filter:blur(4px)}
+.gallery-stage::before{transition:background-image .24s ease,opacity .3s ease!important}
+
+.cursor-aura{position:fixed;z-index:1;width:420px;height:420px;left:0;top:0;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(163,230,53,.045) 0,rgba(163,230,53,.018) 32%,transparent 68%);transform:translate3d(calc(var(--cursor-x, -500px) - 210px),calc(var(--cursor-y, -500px) - 210px),0);opacity:0;transition:opacity .3s ease;will-change:transform}.cursor-aura.active{opacity:1}
+
+.featured-badge{animation:featured-breathe 4.5s ease-in-out infinite}@keyframes featured-breathe{0%,100%{box-shadow:0 0 0 rgba(163,230,53,0)}50%{box-shadow:0 0 22px rgba(163,230,53,.12)}}
+
+@media(max-width:850px){.cursor-aura{display:none}.terminal-body .green::after{display:none}}
+@media(prefers-reduced-motion:reduce){
+  .scroll-progress,.cursor-aura{display:none!important}
+  .motion-enabled .motion-reveal{opacity:1!important;translate:none!important;filter:none!important;transition:none!important}
+  .motion-enabled .hero-copy,.motion-enabled .terminal-card,.motion-enabled .featured-card.motion-tilt{transform:none!important;transition:none!important}
+  .terminal-body .green::after,.featured-badge{animation:none!important}
+  #project-modal .project-dialog,#gallery-image,.motion-magnetic{transition:none!important;filter:none!important;translate:none!important}
+}
