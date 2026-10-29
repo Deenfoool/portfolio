@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Modworks — каталог модификаций Minecraft от DeenFoool.">
+  <meta name="description" content="Modworks — коллекция авторских игровых модификаций от DeenFoool. Проекты для разных игр.">
   <meta name="theme-color" content="#090b0a">
-  <title>Modworks — Minecraft Mods · DeenFoool</title>
+  <title>Modworks — игровые модификации · DeenFoool</title>
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="modworks.css">
+  <link rel="stylesheet" href="modworks.css?v=2">
 </head>
 <body>
 <div class="page">
@@ -23,14 +23,22 @@
   </div></header>
   <main>
     <section class="shell hero">
-      <div class="eyebrow"><span class="diamond" aria-hidden="true"></span> MADE FOR MINECRAFT</div>
+      <div class="eyebrow"><span class="diamond" aria-hidden="true"></span> MADE FOR GAMES · BUILT TO MODIFY</div>
       <h1 class="hero-title">Mod<span>works.</span></h1>
-      <p class="hero-description">Моё пространство для модификаций Minecraft. Здесь собираются отдельные проекты, идеи и эксперименты — каждый со своей страницей и историей.</p>
-      <div class="hero-bottom"><span>INDEPENDENT MOD PROJECTS</span><span>01 / SUITCASE GLIDER</span></div>
+      <p class="hero-description">Моё пространство для игровых модификаций. Здесь собираются отдельные проекты, идеи и эксперименты для разных игр — каждый со своей страницей и историей разработки.</p>
+      <div class="hero-bottom"><span>MODIFICATIONS / EXPERIMENTS / PROJECTS</span><span>01 GAME · 01 MOD</span></div>
     </section>
     <section class="shell catalog" id="catalog" aria-labelledby="catalog-title">
-      <div class="section-title"><h2 id="catalog-title">Модификации</h2><small>01 PROJECT</small></div>
-      <a class="mod-card" href="suitcase-glider/" aria-label="Подробнее о модификации Suitcase Glider">
+      <div class="section-title"><h2 id="catalog-title">Библиотека модификаций</h2><small>01 GAME / 01 PROJECT</small></div>
+      <p class="catalog-intro">Выбирай игру, чтобы посмотреть мои модификации. Новые игры будут появляться отдельными вкладками по мере разработки проектов.</p>
+      <div class="game-tabs" role="tablist" aria-label="Игры с модификациями">
+        <button class="game-tab" id="tab-minecraft" type="button" role="tab" aria-selected="true" aria-controls="game-minecraft" data-game-tab="minecraft">
+          <span class="game-tab-indicator" aria-hidden="true"></span> Minecraft <span class="game-tab-count">01</span>
+        </button>
+      </div>
+      <div class="game-panel" id="game-minecraft" role="tabpanel" aria-labelledby="tab-minecraft" data-game-panel="minecraft" tabindex="0">
+        <div class="game-panel-heading"><span class="meta">GAME / 001</span><h3>Minecraft</h3><p>Модификации для Minecraft</p></div>
+        <a class="mod-card" href="suitcase-glider/" aria-label="Подробнее о модификации Suitcase Glider">
         <div class="mod-visual" aria-hidden="true">
           <span class="pixel-wing left"></span><span class="pixel-wing right"></span><span class="pixel-bag"></span><span class="visual-code">MW / 001</span>
         </div>
@@ -41,12 +49,14 @@
           <div class="tags"><span class="tag">Minecraft</span><span class="tag">GitHub</span><span class="tag">Без опубликованного релиза</span></div>
           <span class="button">О проекте <span aria-hidden="true">↗</span></span>
         </div>
-      </a>
-      <div class="more">Больше модификаций появится здесь по мере разработки.</div>
+        </a>
+      </div>
+      <div class="more">Следующие игровые категории появятся вместе с новыми модификациями.</div>
     </section>
   </main>
   <footer class="site-foot shell"><span>© <span id="year">2026</span> DeenFoool · Modworks</span><a href="../">Вернуться в портфолио ↗</a></footer>
 </div>
 <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+<script src="modworks.js?v=1" defer></script>
 </body>
 </html>

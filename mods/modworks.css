@@ -52,3 +52,20 @@
 @media(max-width:790px){.mod-card,.detail-grid{grid-template-columns:1fr}.mod-visual{min-height:280px}.detail-grid .mod-visual{min-height:330px}.hero{padding-top:70px;padding-bottom:55px}}
 @media(max-width:550px){.shell{padding-left:18px;padding-right:18px}.site-head .shell{min-height:65px}.brand{font-size:20px}.head-links{gap:10px}.head-links a{font-size:10px}.head-links a:not(.back-link){display:none}.hero{padding-top:62px}.hero-title{font-size:62px}.hero-description{font-size:14px}.hero-bottom{margin-top:35px}.section-title h2{font-size:28px}.mod-copy{padding:28px 22px}.mod-copy h3{font-size:36px}.mod-visual{min-height:260px}.pixel-bag{scale:.74}.pixel-wing{scale:.7}.detail-hero{padding-top:47px}.detail-hero h1{font-size:56px}.detail-hero p{font-size:14px}.detail-panel{padding:24px}.catalog,.detail-grid{padding-bottom:70px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}.mod-card,.button{transition:none}}
+
+
+/* Tabs are game categories: add another button + matching panel for a future game. */
+.catalog-intro{max-width:650px;margin:-7px 0 30px;font-size:13px;line-height:1.8;color:#99a994}
+.game-tabs{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #2b3b2c;margin-bottom:33px;padding-bottom:14px}
+.game-tab{appearance:none;cursor:pointer;display:inline-flex;align-items:center;gap:11px;min-height:49px;padding:11px 17px;border:1px solid #33442f;border-radius:10px;background:#101710;color:#a4b29f;font:700 13px Inter,system-ui,sans-serif;transition:border-color .2s,background .2s,color .2s,transform .2s}
+.game-tab:hover{color:#e8f4e0;border-color:#829f6a;transform:translateY(-2px)}
+.game-tab[aria-selected="true"]{color:#0c160a;background:var(--lime);border-color:var(--lime);box-shadow:0 5px 24px #a3e63522}
+.game-tab:focus-visible,.game-panel:focus-visible{outline:3px solid var(--lime);outline-offset:3px}
+.game-tab-indicator{width:8px;height:8px;border:2px solid currentColor;transform:rotate(45deg);opacity:.8}
+.game-tab-count{display:inline-flex;align-items:center;justify-content:center;min-width:25px;height:23px;padding:0 5px;border-radius:5px;border:1px solid currentColor;font:700 10px "JetBrains Mono",monospace;opacity:.8}
+.game-panel[hidden]{display:none!important}
+.game-panel-heading{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;margin-bottom:22px}
+.game-panel-heading h3{font-size:23px;letter-spacing:-.045em;margin:0}
+.game-panel-heading p{font-size:12px;color:#7f947d;margin:0 0 0 auto}
+@media(max-width:550px){.game-tabs{gap:7px}.game-tab{padding:10px 14px;min-height:44px}.catalog-intro{font-size:12px}.game-panel-heading p{margin-left:0;width:100%}}
+@media(prefers-reduced-motion:reduce){.game-tab{transition:none}}
