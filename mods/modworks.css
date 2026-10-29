@@ -57,7 +57,7 @@
 .game-tab:hover{color:#e8f4e0;border-color:#829f6a;transform:translateY(-2px)}
 .game-tab[aria-selected="true"]{color:#0c160a;background:var(--lime);border-color:var(--lime);box-shadow:0 5px 24px #a3e63522}
 .game-tab:focus-visible,.game-panel:focus-visible{outline:3px solid var(--lime);outline-offset:3px}
-.game-tab-indicator{width:8px;height:8px;border:2px solid currentColor;transform:rotate(45deg);opacity:.8}
+.game-tab-icon{display:block;flex:0 0 auto;width:24px;height:27px;object-fit:contain}
 .game-tab-count{display:inline-flex;align-items:center;justify-content:center;min-width:25px;height:23px;padding:0 5px;border-radius:5px;border:1px solid currentColor;font:700 10px "JetBrains Mono",monospace;opacity:.8}
 .game-panel[hidden]{display:none!important}
 .game-panel-heading{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;margin-bottom:22px}
