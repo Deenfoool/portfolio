@@ -1,6 +1,6 @@
 const USER = 'Deenfoool';
 const API = `https://api.github.com/users/${USER}/repos?per_page=100&sort=updated&direction=desc`;
-const HIDDEN_REPOS = new Set(['portfolio']);
+const HIDDEN_REPOS = new Set(['portfolio', 'suit-case-glider']);
 const grid = document.querySelector('#projects-grid');
 const search = document.querySelector('#search');
 const filters = document.querySelector('#filters');

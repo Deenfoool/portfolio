@@ -1,0 +1,25 @@
+/* Dedicated Modworks entrance, visually independent from GitHub projects. */
+.modworks-entry-section{max-width:1180px;margin:0 auto;padding:70px 28px 0}
+.modworks-entry-card{position:relative;display:grid;grid-template-columns:1.15fr .85fr;min-height:300px;isolation:isolate;overflow:hidden;border:1px solid #3d4d2a;border-radius:20px;background:linear-gradient(120deg,#121a12 0%,#0d1210 55%,#101514 100%);color:#f4f4f5;text-decoration:none;box-shadow:0 18px 50px #0006;transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}
+.modworks-entry-card:hover{transform:translateY(-5px);border-color:#a3e635;box-shadow:0 24px 70px #0009,0 0 50px #a3e63512}
+.modworks-entry-card:focus-visible{outline:3px solid #a3e635;outline-offset:5px}
+.modworks-entry-card:before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 75% 45%,#a3e63515,transparent 50%)}
+.modworks-entry-copy{display:flex;flex-direction:column;align-items:flex-start;padding:45px 46px 44px;position:relative;z-index:2}
+.modworks-entry-kicker{font:700 10px "JetBrains Mono",monospace;letter-spacing:.17em;color:#a3e635;display:inline-flex;align-items:center;gap:9px}
+.modworks-entry-spark{width:8px;height:8px;background:#a3e635;transform:rotate(45deg);box-shadow:0 0 16px #a3e635a0}
+.modworks-entry-name{font-size:clamp(47px,6.1vw,80px);font-weight:800;letter-spacing:-.075em;line-height:1.1;margin:20px 0 8px}
+.modworks-entry-name span{color:#a3e635}
+.modworks-entry-description{max-width:480px;color:#a4aca1;font-size:14px;line-height:1.7}
+.modworks-entry-button{display:inline-flex;align-items:center;gap:20px;padding:12px 15px;margin-top:25px;background:#a3e635;border-radius:9px;color:#101410;font-weight:800;font-size:12px;transition:background .2s ease,gap .2s ease}
+.modworks-entry-card:hover .modworks-entry-button{background:#bef264;gap:28px}
+.modworks-entry-art{position:relative;display:block;overflow:hidden;min-height:270px;perspective:500px}
+.modworks-entry-art-grid{position:absolute;inset:0;background-image:linear-gradient(#a3e63511 1px,transparent 1px),linear-gradient(90deg,#a3e63511 1px,transparent 1px);background-size:33px 33px;mask-image:linear-gradient(to right,transparent 5%,#000 50%);transform:skewY(-10deg) scale(1.3)}
+.modworks-entry-cube{position:absolute;display:block;aspect-ratio:1;border:2px solid #bbf76c;background:linear-gradient(135deg,#a3e635 0%,#578921 100%);box-shadow:18px 18px 0 #314b1f,19px 19px 0 2px #96c454,28px 30px 70px #0008;transform:rotate(-22deg) skew(5deg,5deg)}
+.modworks-entry-cube-front{width:126px;top:75px;left:42%;animation:modworks-float 6s ease-in-out infinite}
+.modworks-entry-cube-back{width:61px;top:60px;left:22%;opacity:.6;transform:rotate(25deg) skew(5deg,5deg)}
+.modworks-entry-art-label{position:absolute;right:24px;bottom:20px;color:#a3e6358a;font:700 10px "JetBrains Mono",monospace;letter-spacing:.1em}
+.modworks-entry-section+.projects-section{padding-top:98px}
+@keyframes modworks-float{50%{translate:0 -10px}}
+@media(max-width:780px){.modworks-entry-card{grid-template-columns:1fr}.modworks-entry-copy{padding:37px 29px 20px}.modworks-entry-art{min-height:190px}.modworks-entry-cube-front{top:25px;left:52%;width:100px}.modworks-entry-cube-back{top:15px;left:25%}.modworks-entry-section+.projects-section{padding-top:70px}}
+@media(max-width:600px){.modworks-entry-section{padding:55px 18px 0}.modworks-entry-card{border-radius:14px}.modworks-entry-copy{padding:31px 23px 14px}.modworks-entry-name{font-size:55px}.modworks-entry-description{font-size:12px}.modworks-entry-art{min-height:145px}.modworks-entry-cube-front{top:13px;left:57%;width:78px}.modworks-entry-cube-back{top:18px;left:30%;width:42px}}
+@media(prefers-reduced-motion:reduce){.modworks-entry-cube-front{animation:none}.modworks-entry-card{transition:none}}

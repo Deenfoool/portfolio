@@ -1,7 +1,7 @@
 (() => {
   const USER='Deenfoool';
   const API=`https://api.github.com/users/${USER}/repos?per_page=100&sort=updated&direction=desc`;
-  const HIDDEN=new Set(['portfolio']);
+  const HIDDEN=new Set(['portfolio','suit-case-glider']);
   const featuredGrid=document.querySelector('#featured-grid');
   const projectsGrid=document.querySelector('#projects-grid');
   const modal=document.querySelector('#project-modal');

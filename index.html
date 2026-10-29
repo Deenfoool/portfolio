@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="ui-polish.css?v=2">
   <link rel="stylesheet" href="support.css?v=1">
   <link rel="stylesheet" href="motion.css?v=1">
+  <link rel="stylesheet" href="modworks-entry.css?v=1">
   <style>#gallery-loading[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -27,6 +28,7 @@
     <nav>
       <a href="#featured">Избранное</a>
       <a href="#projects">Проекты</a>
+      <a href="mods/">Моды</a>
       <a href="#about">Обо мне</a>
       <a class="nav-github" href="https://github.com/Deenfoool" target="_blank" rel="noreferrer">GitHub ↗</a>
     </nav>
@@ -70,6 +72,23 @@
       <div id="featured-grid" class="featured-grid" aria-live="polite">
         <div class="loading-card"><span class="loader"></span>Выбираю проекты...</div>
       </div>
+    </section>
+
+    <section class="modworks-entry-section" aria-labelledby="modworks-entry-title">
+      <a class="modworks-entry-card" href="mods/" aria-label="Перейти в Modworks — каталог модов Minecraft">
+        <span class="modworks-entry-copy">
+          <span class="modworks-entry-kicker"><span class="modworks-entry-spark" aria-hidden="true"></span> MINECRAFT · MOD COLLECTION</span>
+          <span class="modworks-entry-name" id="modworks-entry-title">Mod<span>works.</span></span>
+          <span class="modworks-entry-description">Отдельное пространство для моих модификаций Minecraft. Идеи, эксперименты и проекты — всё в одном месте.</span>
+          <span class="modworks-entry-button">Исследовать моды <span aria-hidden="true">↗</span></span>
+        </span>
+        <span class="modworks-entry-art" aria-hidden="true">
+          <span class="modworks-entry-art-grid"></span>
+          <span class="modworks-entry-cube modworks-entry-cube-back"></span>
+          <span class="modworks-entry-cube modworks-entry-cube-front"></span>
+          <span class="modworks-entry-art-label">BUILD / MODIFY / PLAY</span>
+        </span>
+      </a>
     </section>
 
     <section class="projects-section" id="projects">
