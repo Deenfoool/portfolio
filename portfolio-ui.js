@@ -1,7 +1,12 @@
 (() => {
   const USER='Deenfoool';
   const API=`https://api.github.com/users/${USER}/repos?per_page=100&sort=updated&direction=desc`;
-  const HIDDEN=new Set(['portfolio','suit-case-glider']);
+  const HIDDEN=new Set(['portfolio','suit-case-glider','deenfoool']);
+  const spotlight=new Map([
+    ['island-lab',{title:'Island Lab',image:'media/island-lab.png',order:0}],
+    ['snowy-new-year',{title:'Snowy New Year',image:'media/snowy-new-year.jpg',order:1}]
+  ]);
+  const highlight=r=>spotlight.get(r.name.toLowerCase());
   const featuredGrid=document.querySelector('#featured-grid');
   const projectsGrid=document.querySelector('#projects-grid');
   const modal=document.querySelector('#project-modal');
@@ -24,7 +29,7 @@
   };
   const topics=r=>Array.isArray(r.topics)?r.topics:[];
   const visibleTopics=r=>topics(r).filter(t=>t.toLowerCase()!=='featured');
-  const isFeatured=r=>topics(r).some(t=>t.toLowerCase()==='featured');
+  const isFeatured=r=>highlight(r)||topics(r).some(t=>t.toLowerCase()==='featured');
   const cleanRepos=data=>(Array.isArray(data)?data:[]).filter(r=>!r.fork&&!r.archived&&!HIDDEN.has(String(r.name||'').toLowerCase()));
   const site=r=>{
     const home=String(r.homepage||'').trim();
@@ -35,7 +40,7 @@
   const cover=r=>{
     const branch=r.default_branch||'main';
     return {
-      custom:`https://raw.githubusercontent.com/${USER}/${r.name}/${encodeURIComponent(branch)}/portfolio/cover.png`,
+      custom:highlight(r)?.image||`https://raw.githubusercontent.com/${USER}/${r.name}/${encodeURIComponent(branch)}/portfolio/cover.png`,
       fallback:`https://opengraph.githubassets.com/1/${USER}/${r.name}`
     };
   };
@@ -49,29 +54,32 @@
 
   function featuredCard(r){
     const img=cover(r), live=site(r), tags=visibleTopics(r).slice(0,3);
+    const highlighted=highlight(r), title=highlighted?.title||r.name;
+    const destination=highlighted?r.html_url+'/releases/latest':live||r.html_url;
+    const action=highlighted?'Скачать':live?'Открыть сайт':'GitHub';
     return `<article class="featured-card">
       <button class="featured-media" type="button" data-project-detail="${esc(r.name)}">
-        <img src="${esc(img.custom)}" alt="${esc(r.name)}" loading="lazy" onerror="this.onerror=null;this.src='${esc(img.fallback)}'">
+        <img src="${esc(img.custom)}" alt="${esc(title)}" loading="lazy" onerror="this.onerror=null;this.src='${esc(img.fallback)}'">
         <span class="featured-badge">FEATURED</span>
       </button>
       <div class="featured-body">
         <div class="featured-kicker">${esc(r.language||'Project')} · ${rel(r.updated_at)}</div>
-        <button class="featured-title" type="button" data-project-detail="${esc(r.name)}">${esc(r.name)} <span>↗</span></button>
+        <button class="featured-title" type="button" data-project-detail="${esc(r.name)}">${esc(title)} <span>↗</span></button>
         <p>${esc(r.description||'Проект из моего GitHub — открой карточку, чтобы посмотреть подробнее.')}</p>
         ${tags.length?`<div class="featured-topics">${tags.map(t=>`<span>${esc(t)}</span>`).join('')}</div>`:''}
         <div class="featured-actions">
           <button class="button primary" type="button" data-project-detail="${esc(r.name)}">Подробнее <span>→</span></button>
-          ${live?`<a class="button ghost" href="${esc(live)}" target="_blank" rel="noreferrer">Открыть сайт ↗</a>`:`<a class="button ghost" href="${esc(r.html_url)}" target="_blank" rel="noreferrer">GitHub ↗</a>`}
+          <a class="button ghost" href="${esc(destination)}" target="_blank" rel="noreferrer">${action} ↗</a>
         </div>
       </div>
     </article>`;
   }
 
   function renderFeatured(){
-    if(!featuredGrid)return;
-    const pinned=repos.filter(isFeatured);
-    const list=(pinned.length?pinned:repos).slice(0,3);
-    featuredGrid.innerHTML=list.length?list.map(featuredCard).join(''):'<div class="loading-card">Пока нет проектов для показа.</div>';
+    if(!featuredGrid||repos.filter(highlight).length!==spotlight.size)return;
+    const order=r=>highlight(r)?.order??spotlight.size;
+    const list=repos.filter(isFeatured).sort((a,b)=>order(a)-order(b)).slice(0,3);
+    featuredGrid.innerHTML=list.map(featuredCard).join('');
   }
 
   function repoFromHref(href){
@@ -98,6 +106,8 @@
   }
 
   function galleryCandidates(r){
+    const highlighted=highlight(r);
+    if(highlighted)return [highlighted.image];
     const branch=r.default_branch||'main';
     const base=`https://raw.githubusercontent.com/${USER}/${r.name}/${encodeURIComponent(branch)}/portfolio`;
     return [
@@ -152,15 +162,17 @@
   async function openModal(name){
     const r=await ensureRepo(name);
     if(!r)return;
-    const live=site(r), tags=visibleTopics(r);
-    document.querySelector('#modal-title').textContent=r.name;
+    const live=site(r), tags=visibleTopics(r), highlighted=highlight(r);
+    const destination=highlighted?r.html_url+'/releases/latest':live;
+    const action=highlighted?'Скачать':'Открыть проект';
+    document.querySelector('#modal-title').textContent=highlighted?.title||r.name;
     document.querySelector('#modal-description').textContent=r.description||'Описание проекта пока не добавлено в GitHub. Можно перейти в репозиторий или открыть живую версию проекта.';
     document.querySelector('#modal-language').textContent=r.language||'—';
     document.querySelector('#modal-updated').textContent=rel(r.updated_at);
     document.querySelector('#modal-stars').textContent=String(r.stargazers_count||0);
-    document.querySelector('#modal-format').textContent=live?'Live project':'Open source';
+    document.querySelector('#modal-format').textContent=highlighted?'Приложение Windows':live?'Live project':'Open source';
     document.querySelector('#modal-topics').innerHTML=tags.length?tags.map(t=>`<span>${esc(t)}</span>`).join(''):'<span>GitHub project</span>';
-    document.querySelector('#modal-actions').innerHTML=`${live?`<a class="button primary" href="${esc(live)}" target="_blank" rel="noreferrer">Открыть проект <span>↗</span></a>`:''}<a class="button ghost" href="${esc(r.html_url)}" target="_blank" rel="noreferrer">GitHub <span>↗</span></a>`;
+    document.querySelector('#modal-actions').innerHTML=`${destination?`<a class="button primary" href="${esc(destination)}" target="_blank" rel="noreferrer">${action} <span>↗</span></a>`:''}<a class="button ghost" href="${esc(r.html_url)}" target="_blank" rel="noreferrer">GitHub <span>↗</span></a>`;
     modal.hidden=false;
     document.body.classList.add('modal-open');
     requestAnimationFrame(()=>modal.classList.add('open'));
@@ -214,7 +226,6 @@
       enhanceProjectCards();
     })
     .catch(()=>{
-      if(!repos.length&&featuredGrid)featuredGrid.innerHTML='<div class="loading-card">Избранные проекты временно не загрузились.</div>';
       enhanceProjectCards();
     });
 })();

@@ -3,11 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Портфолио Deenfoool — проекты и эксперименты из GitHub.">
+  <meta name="description" content="Проекты DeenFoool: приложения для Windows, веб-инструменты и игры. Посмотрите Island Lab, Snowy New Year и другие работы.">
+  <link rel="canonical" href="https://deenfoool.github.io/portfolio/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:url" content="https://deenfoool.github.io/portfolio/">
+  <meta property="og:title" content="DeenFoool — приложения, веб-инструменты и игры">
+  <meta property="og:description" content="Island Lab, Snowy New Year и другие проекты. Скриншоты, исходники и готовые сборки.">
+  <meta property="og:image" content="https://deenfoool.github.io/portfolio/media/island-lab.png">
+  <meta property="og:image:alt" content="Island Lab — стеклянная панель с музыкой, текстом песни и погодой">
+  <meta property="og:image:width" content="1100">
+  <meta property="og:image:height" content="425">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#09090b">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="shortcut icon" href="favicon.svg">
-  <title>DeenFoool — Portfolio</title>
+  <title>DeenFoool — приложения, веб-инструменты и игры</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -39,9 +50,9 @@
       <div class="hero-copy">
         <p class="eyebrow"><span class="pulse"></span> OPEN TO BUILD</p>
         <h1>Привет, я <span>DeenFoool.</span><br>Создаю вещи, которые<br>хочется запустить.</h1>
-        <p class="hero-text">Разрабатываю веб‑проекты, инструменты и эксперименты. Здесь — актуальные проекты прямо из моего GitHub.</p>
+        <p class="hero-text">Разрабатываю приложения для Windows, веб-инструменты и игры. Здесь можно посмотреть проекты, скачать сборки и открыть исходники.</p>
         <div class="hero-actions">
-          <a class="button primary" href="#featured">Смотреть лучшее <span>↓</span></a>
+          <a class="button primary" href="#featured">Смотреть проекты <span>↓</span></a>
           <a class="button ghost" href="https://github.com/Deenfoool" target="_blank" rel="noreferrer">Открыть GitHub ↗</a>
         </div>
       </div>
@@ -70,7 +81,34 @@
         <div><p class="eyebrow">FEATURED WORK</p><h2>Избранные проекты</h2></div>
       </div>
       <div id="featured-grid" class="featured-grid" aria-live="polite">
-        <div class="loading-card"><span class="loader"></span>Выбираю проекты...</div>
+        <article class="featured-card">
+          <a class="featured-media" href="https://github.com/Deenfoool/island-lab">
+            <img src="media/island-lab.png" alt="Главная панель Island Lab с музыкой, текстом песни и погодой">
+          </a>
+          <div class="featured-body">
+            <div class="featured-kicker">Windows · Rust / Tauri</div>
+            <h3 class="featured-title">Island Lab</h3>
+            <p>Музыка, синхронный текст песен, погода и редактор скриншотов в стеклянной панели.</p>
+            <div class="featured-actions">
+              <a class="button primary" href="https://github.com/Deenfoool/island-lab/releases/latest">Скачать ↗</a>
+              <a class="button ghost" href="https://github.com/Deenfoool/island-lab">GitHub ↗</a>
+            </div>
+          </div>
+        </article>
+        <article class="featured-card">
+          <a class="featured-media" href="https://github.com/Deenfoool/snowy-New-Year">
+            <img src="media/snowy-new-year.jpg" alt="Интерфейс и снег на рабочем столе в Snowy New Year">
+          </a>
+          <div class="featured-body">
+            <div class="featured-kicker">Windows · Rust</div>
+            <h3 class="featured-title">Snowy New Year</h3>
+            <p>Снегопад, снежные шапки на окнах и снеговики прямо на рабочем столе Windows.</p>
+            <div class="featured-actions">
+              <a class="button primary" href="https://github.com/Deenfoool/snowy-New-Year/releases/latest">Скачать ↗</a>
+              <a class="button ghost" href="https://github.com/Deenfoool/snowy-New-Year">GitHub ↗</a>
+            </div>
+          </div>
+        </article>
       </div>
     </section>
 
@@ -185,8 +223,8 @@
   </div>
 
   <script src="https://unpkg.com/lucide@1.40.0/dist/umd/lucide.min.js"></script>
-  <script src="script.js?v=3"></script>
-  <script src="portfolio-ui.js?v=4"></script>
+  <script src="script.js?v=4"></script>
+  <script src="portfolio-ui.js?v=5"></script>
   <script src="ui-polish.js?v=1"></script>
   <script src="motion.js?v=1"></script>
 </body>
