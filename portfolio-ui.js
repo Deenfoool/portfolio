@@ -37,16 +37,21 @@
     if(!r.has_pages)return'';
     return `https://${USER}.github.io/${encodeURIComponent(r.name)}/`;
   };
-  // Single media convention for every repository, including featured ones:
-  // <default-branch>/portfolio/cover.png + gallery/01.png .. gallery/10.png.
+  // One media convention for every project, including featured cards:
+  // portfolio/cover.png, otherwise portfolio/cover.jpg, then GitHub OG.
+  // Optional gallery: gallery/01.png .. 10.png.
   const portfolioMediaBase=r=>{
     const branch=r.default_branch||'main';
     return `https://raw.githubusercontent.com/${USER}/${encodeURIComponent(r.name)}/${encodeURIComponent(branch)}/portfolio`;
   };
   const cover=r=>({
     custom:portfolioMediaBase(r)+'/cover.png',
+    alternate:portfolioMediaBase(r)+'/cover.jpg',
     fallback:`https://opengraph.githubassets.com/1/${USER}/${encodeURIComponent(r.name)}`
   });
+  // Try the same image extensions in the same order for ALL repositories.
+  const coverOnError=img=>
+    `this.onerror=function(){this.onerror=null;this.src='${esc(img.fallback)}'};this.src='${esc(img.alternate)}'`;
 
   function readCachedRepos(){
     try{
@@ -62,7 +67,7 @@
     const action=highlighted?'Скачать':live?'Открыть сайт':'GitHub';
     return `<article class="featured-card">
       <button class="featured-media" type="button" data-project-detail="${esc(r.name)}">
-        <img src="${esc(img.custom)}" alt="${esc(title)}" loading="lazy" onerror="this.onerror=null;this.src='${esc(img.fallback)}'">
+        <img src="${esc(img.custom)}" alt="${esc(title)}" loading="lazy" onerror="${coverOnError(img)}">
         <span class="featured-badge">FEATURED</span>
       </button>
       <div class="featured-body">
@@ -112,6 +117,7 @@
     const base=portfolioMediaBase(r);
     return [
       `${base}/cover.png`,
+      `${base}/cover.jpg`,
       ...Array.from({length:10},(_,i)=>`${base}/gallery/${String(i+1).padStart(2,'0')}.png`)
     ];
   }
