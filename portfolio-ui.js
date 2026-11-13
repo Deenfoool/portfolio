@@ -70,10 +70,12 @@
         <div class="featured-kicker">${esc(r.language||'Project')} · ${rel(r.updated_at)}</div>
         <button class="featured-title" type="button" data-project-detail="${esc(r.name)}">${esc(title)} <span>↗</span></button>
         <p>${esc(r.description||'Проект из моего GitHub — открой карточку, чтобы посмотреть подробнее.')}</p>
-        ${tags.length?`<div class="featured-topics">${tags.map(t=>`<span>${esc(t)}</span>`).join('')}</div>`:''}
-        <div class="featured-actions">
-          <button class="button primary" type="button" data-project-detail="${esc(r.name)}">Подробнее <span>→</span></button>
-          <a class="button ghost" href="${esc(destination)}" target="_blank" rel="noreferrer">${action} ↗</a>
+        <div class="featured-bottom">
+          ${tags.length?`<div class="featured-topics">${tags.map(t=>`<span>${esc(t)}</span>`).join('')}</div>`:''}
+          <div class="featured-actions">
+            <button class="button primary" type="button" data-project-detail="${esc(r.name)}">Подробнее <span>→</span></button>
+            <a class="button ghost" href="${esc(destination)}" target="_blank" rel="noreferrer">${action} ↗</a>
+          </div>
         </div>
       </div>
     </article>`;
