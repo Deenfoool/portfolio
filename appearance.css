@@ -236,42 +236,52 @@ html[data-theme="light"] #holiday-snow .holiday-fall{
 .project-dialog.holiday-host{position:absolute}
 /* The standalone Snowy New Year dialog also keeps its centered position. */
 .project-dialog.snowy-theme{position:absolute}
-/* Caps float in a fixed overlay rather than inside clipped cards. */
-body > #holiday-page-caps,
+/* Snow caps are DOM children, so transforms and scrolling are automatic.
+   No viewport geometry polling or delayed position syncing is required. */
+.holiday-cap-host:not(.project-dialog){overflow:visible!important}
+.holiday-cap-host{position:relative}
+.project-dialog.holiday-cap-host{position:absolute}
+.holiday-cap-host > .holiday-cap{
+  position:absolute;
+  display:block;
+  left:0;
+  top:calc(2px - var(--cap-height,19px));
+  width:100%;
+  height:var(--cap-height,19px);
+  overflow:visible;
+  pointer-events:none!important;
+  z-index:24;
+  filter:drop-shadow(0 2px 2px rgba(112,164,185,.25));
+}
+/* Preserve rounded image corners despite opening the outer card's overflow. */
+.project.holiday-cap-host .project-image{border-radius:9px 9px 0 0}
+.featured-card.holiday-cap-host .featured-media{border-radius:13px 13px 0 0}
+.terminal-card.holiday-cap-host .terminal-top{border-radius:11px 11px 0 0}
+.modworks-entry-card.holiday-cap-host .modworks-entry-art{border-radius:0 19px 19px 0}
+.cta.holiday-cap-host .cta-glow{opacity:.35}
+.support-card.holiday-cap-host::before{clip-path:inset(0 round 14px)}
+/* The modal must keep overflow and scrolling. Its single cap sits in a
+   separate layer, following only its opening/closing transition. */
 body > #holiday-dialog-caps{
   position:fixed!important;
   inset:0;
-  width:100vw;
-  height:100vh;
-  display:block;
-  pointer-events:none!important;
+  z-index:1001;
   overflow:visible;
+  pointer-events:none!important;
 }
-body > #holiday-page-caps{z-index:38}
-body > #holiday-dialog-caps{z-index:1001}
-#holiday-page-caps > .holiday-cap,
 #holiday-dialog-caps > .holiday-cap{
   position:absolute;
   left:0;
   top:0;
   display:block;
   pointer-events:none!important;
+  filter:drop-shadow(0 2px 2px rgba(112,164,185,.25));
   will-change:transform;
 }
-/* The SVG's scalloped edge is now ABOVE the block, and its flat edge
-   rests on the block's top border. Keep inversion separate from position. */
-#holiday-page-caps > .holiday-cap::before,
-#holiday-dialog-caps > .holiday-cap::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:url("assets/snow-cap.svg") center / 100% 100% no-repeat;
-  transform:scaleY(-1);
-  filter:drop-shadow(0 -2px 3px rgba(133,191,218,.25));
-  pointer-events:none;
-}
-#holiday-page-caps > .holiday-cap[hidden],
 #holiday-dialog-caps > .holiday-cap[hidden]{display:none!important}
+@media(max-width:780px){
+  .modworks-entry-card.holiday-cap-host .modworks-entry-art{border-radius:0 0 18px 18px}
+}
 .holiday-host > .holiday-garland{
   position:absolute;
   left:0;
