@@ -20,13 +20,15 @@ function relativeDate(date) {
   const months = Math.floor(days / 30); return `${months} мес. назад`;
 }
 
-// Обложка проекта хранится в portfolio/cover.png.
-// Если файла нет, карточка автоматически переключается на GitHub OpenGraph.
+// Единый формат медиа для всех проектов:
+// portfolio/cover.png → portfolio/cover.jpg → резервная GitHub OpenGraph.
 function repoImage(repo) {
   const branch = repo.default_branch || 'main';
+  const base = `https://raw.githubusercontent.com/${USER}/${encodeURIComponent(repo.name)}/${encodeURIComponent(branch)}/portfolio`;
   return {
-    custom: `https://raw.githubusercontent.com/${USER}/${repo.name}/${encodeURIComponent(branch)}/portfolio/cover.png`,
-    fallback: `https://opengraph.githubassets.com/1/${USER}/${repo.name}`
+    custom: `${base}/cover.png`,
+    alternate: `${base}/cover.jpg`,
+    fallback: `https://opengraph.githubassets.com/1/${USER}/${encodeURIComponent(repo.name)}`
   };
 }
 
@@ -63,7 +65,7 @@ function render() {
     return `
     <article class="project">
       <a class="project-cover" href="${esc(repo.html_url)}" target="_blank" rel="noreferrer" aria-label="Открыть ${esc(repo.name)} на GitHub">
-        <div class="project-image"><img src="${esc(image.custom)}" alt="${esc(repo.name)}" loading="lazy" onerror="this.onerror=null;this.src='${esc(image.fallback)}'"><span class="project-index">${String(i+1).padStart(2,'0')}</span></div>
+        <div class="project-image"><img src="${esc(image.custom)}" alt="${esc(repo.name)}" loading="lazy" onerror="this.onerror=function(){this.onerror=null;this.src='${esc(image.fallback)}'};this.src='${esc(image.alternate)}'"><span class="project-index">${String(i+1).padStart(2,'0')}</span></div>
       </a>
       <div class="project-body">
         <a class="project-title-link" href="${esc(repo.html_url)}" target="_blank" rel="noreferrer">
