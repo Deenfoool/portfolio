@@ -12,19 +12,11 @@
 .modworks-entry-description{max-width:480px;color:#a4aca1;font-size:14px;line-height:1.7}
 .modworks-entry-button{display:inline-flex;align-items:center;gap:20px;padding:12px 15px;margin-top:25px;background:#a3e635;border-radius:9px;color:#101410;font-weight:800;font-size:12px;transition:background .2s ease,gap .2s ease}
 .modworks-entry-card:hover .modworks-entry-button{background:#bef264;gap:28px}
-.modworks-entry-art{position:relative;display:block;overflow:hidden;min-height:270px;perspective:500px}
-.modworks-entry-art-grid{position:absolute;inset:0;background-image:linear-gradient(#a3e63511 1px,transparent 1px),linear-gradient(90deg,#a3e63511 1px,transparent 1px);background-size:33px 33px;mask-image:linear-gradient(to right,transparent 5%,#000 50%);transform:skewY(-10deg) scale(1.3)}
-.modworks-entry-workspace{position:absolute;z-index:1;left:11%;right:12%;top:20%;display:block;min-height:190px;overflow:hidden;border:1px solid #536946;border-radius:13px;background:linear-gradient(160deg,#1c291b,#101911);box-shadow:20px 25px 55px #0009;transform:rotate(4deg);transition:transform .3s ease,border-color .3s}
-.modworks-entry-card:hover .modworks-entry-workspace{transform:rotate(1deg) translateY(-5px);border-color:#a3e635}
-.modworks-entry-workspace-top{height:37px;padding:0 13px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #394a31;background:#182317}
-.modworks-entry-workspace-top i{display:block;width:6px;height:6px;border-radius:50%;background:#68815b}
-.modworks-entry-workspace-top b{margin-left:10px;font:600 10px "JetBrains Mono",monospace;color:#a5b39b;letter-spacing:.035em}
-.modworks-entry-workspace-row{display:flex;align-items:center;gap:13px;margin:18px 19px 0;color:#d4ecc0;font:600 clamp(11px,1.3vw,15px) "JetBrains Mono",monospace}
-.modworks-entry-workspace-row em{font:700 17px "JetBrains Mono",monospace;color:#a3e635;font-style:normal}
-.modworks-entry-workspace-row.alt{color:#86ae70;margin-top:10px}
-.modworks-entry-workspace-bottom{display:block;margin:17px 19px 18px;color:#607759;font:700 9px "JetBrains Mono",monospace;letter-spacing:.07em}
-.modworks-entry-art-label{position:absolute;right:24px;bottom:20px;color:#a3e6358a;font:700 10px "JetBrains Mono",monospace;letter-spacing:.1em}
+.modworks-entry-art{position:relative;display:block;overflow:hidden;min-height:300px;background:#0d1210}
+.modworks-entry-image{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center;transition:transform .35s ease}
+.modworks-entry-art::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#0d1210 0%,rgba(13,18,16,.12) 34%,transparent 72%)}
+.modworks-entry-card:hover .modworks-entry-image{transform:scale(1.025)}
 .modworks-entry-section+.projects-section{padding-top:98px}
-@media(max-width:780px){.modworks-entry-card{grid-template-columns:1fr}.modworks-entry-copy{padding:37px 29px 20px}.modworks-entry-art{min-height:190px}.modworks-entry-workspace{left:17%;right:17%;top:0;min-height:174px}.modworks-entry-section+.projects-section{padding-top:70px}}
-@media(max-width:600px){.modworks-entry-section{padding:55px 18px 0}.modworks-entry-card{border-radius:14px}.modworks-entry-copy{padding:31px 23px 14px}.modworks-entry-name{font-size:55px}.modworks-entry-description{font-size:12px}.modworks-entry-art{min-height:145px}.modworks-entry-workspace{left:12%;right:12%;top:0;min-height:155px}.modworks-entry-workspace-row{margin-top:10px;font-size:11px}.modworks-entry-workspace-bottom{margin-top:8px}}
-@media(prefers-reduced-motion:reduce){.modworks-entry-card,.modworks-entry-workspace{transition:none}}
+@media(max-width:780px){.modworks-entry-card{grid-template-columns:1fr}.modworks-entry-copy{padding:37px 29px 20px}.modworks-entry-art{min-height:230px}.modworks-entry-art::after{background:linear-gradient(180deg,#0d1210 0%,transparent 32%)}.modworks-entry-section+.projects-section{padding-top:70px}}
+@media(max-width:600px){.modworks-entry-section{padding:55px 18px 0}.modworks-entry-card{border-radius:14px}.modworks-entry-copy{padding:31px 23px 14px}.modworks-entry-name{font-size:55px}.modworks-entry-description{font-size:12px}.modworks-entry-art{min-height:190px}}
+@media(prefers-reduced-motion:reduce){.modworks-entry-card,.modworks-entry-image{transition:none}}
