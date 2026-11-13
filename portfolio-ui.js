@@ -2,12 +2,8 @@
   const USER='Deenfoool';
   const API=`https://api.github.com/users/${USER}/repos?per_page=100&sort=updated&direction=desc`;
   const HIDDEN=new Set(['portfolio','suit-case-glider','deenfoool']);
-  const spotlight=new Map([
-    ['island-lab',{title:'Island Lab',order:0}],
-    ['snowy-new-year',{title:'Snowy New Year',order:1}]
-  ]);
-  const highlight=r=>spotlight.get(r.name.toLowerCase());
-  const DOWNLOAD_REPOS=new Set(['padcharge']); // Has a published release.
+  // Release buttons do not affect whether a project appears in Featured.
+  const DOWNLOAD_REPOS=new Set(['padcharge','island-lab','snowy-new-year']);
   const featuredGrid=document.querySelector('#featured-grid');
   const projectsGrid=document.querySelector('#projects-grid');
   const modal=document.querySelector('#project-modal');
@@ -30,7 +26,7 @@
   };
   const topics=r=>Array.isArray(r.topics)?r.topics:[];
   const visibleTopics=r=>topics(r).filter(t=>t.toLowerCase()!=='featured');
-  const isFeatured=r=>highlight(r)||topics(r).some(t=>t.toLowerCase()==='featured');
+  const isFeatured=r=>topics(r).some(t=>String(t).toLowerCase()==='featured');
   const cleanRepos=data=>(Array.isArray(data)?data:[]).filter(r=>!r.fork&&!r.archived&&!HIDDEN.has(String(r.name||'').toLowerCase()));
   const site=r=>{
     const home=String(r.homepage||'').trim();
@@ -63,9 +59,9 @@
 
   function featuredCard(r){
     const img=cover(r), live=site(r), tags=visibleTopics(r).slice(0,3);
-    const highlighted=highlight(r), title=highlighted?.title||r.name;
-    const destination=highlighted?r.html_url+'/releases/latest':live||r.html_url;
-    const action=highlighted?'Скачать':live?'Открыть сайт':'GitHub';
+    const downloadable=DOWNLOAD_REPOS.has(r.name.toLowerCase()), title=r.name;
+    const destination=downloadable?r.html_url+'/releases/latest':live||r.html_url;
+    const action=downloadable?'Скачать':live?'Открыть сайт':'GitHub';
     return `<article class="featured-card">
       <button class="featured-media" type="button" data-project-detail="${esc(r.name)}">
         <img src="${esc(img.custom)}" alt="${esc(title)}" loading="lazy" onerror="${coverOnError(img)}">
@@ -85,10 +81,11 @@
   }
 
   function renderFeatured(){
-    if(!featuredGrid||repos.filter(highlight).length!==spotlight.size)return;
-    const order=r=>highlight(r)?.order??spotlight.size;
-    const list=repos.filter(isFeatured).sort((a,b)=>order(a)-order(b)).slice(0,3);
-    featuredGrid.innerHTML=list.map(featuredCard).join('');
+    if(!featuredGrid)return;
+    const list=repos.filter(isFeatured).slice(0,3);
+    featuredGrid.innerHTML=list.length
+      ? list.map(featuredCard).join('')
+      : '<div class="loading-card">Пока нет проектов с топиком featured.</div>';
   }
 
   function repoFromHref(href){
@@ -169,11 +166,11 @@
   async function openModal(name){
     const r=await ensureRepo(name);
     if(!r)return;
-    const live=site(r), tags=visibleTopics(r), highlighted=highlight(r);
-    const downloadable=Boolean(highlighted)||DOWNLOAD_REPOS.has(r.name.toLowerCase());
+    const live=site(r), tags=visibleTopics(r);
+    const downloadable=DOWNLOAD_REPOS.has(r.name.toLowerCase());
     const destination=downloadable?r.html_url+'/releases/latest':live;
     const action=downloadable?'Скачать':'Открыть проект';
-    document.querySelector('#modal-title').textContent=highlighted?.title||r.name;
+    document.querySelector('#modal-title').textContent=r.name;
     document.querySelector('#modal-description').textContent=r.description||'Описание проекта пока не добавлено в GitHub. Можно перейти в репозиторий или открыть живую версию проекта.';
     document.querySelector('#modal-language').textContent=r.language||'—';
     document.querySelector('#modal-updated').textContent=rel(r.updated_at);
