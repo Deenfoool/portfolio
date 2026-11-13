@@ -37,22 +37,6 @@
   document.documentElement.classList.add('motion-enabled');
   initialReveal.forEach(node => revealObserver.observe(node));
 
-  const progress = document.createElement('div');
-  progress.className = 'scroll-progress';
-  progress.setAttribute('aria-hidden', 'true');
-  progress.innerHTML = '<span></span>';
-  document.body.appendChild(progress);
-  const progressBar = progress.firstElementChild;
-
-  function updateScrollProgress() {
-    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    const value = Math.min(1, Math.max(0, window.scrollY / max));
-    progressBar.style.transform = `scaleX(${value})`;
-  }
-  updateScrollProgress();
-  window.addEventListener('scroll', updateScrollProgress, { passive: true });
-  window.addEventListener('resize', updateScrollProgress, { passive: true });
-
   const stats = document.querySelector('#stats');
   let statsVisible = false;
   const statNodes = ['repo-count', 'star-count', 'language-count', 'follower-count']
@@ -203,7 +187,6 @@
     mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
       if (node.nodeType === 1) setupInteractive(node);
     }));
-    updateScrollProgress();
   });
   dynamicObserver.observe(document.body, { childList: true, subtree: true });
 

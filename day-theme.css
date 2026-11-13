@@ -27,9 +27,6 @@ html[data-theme="light"] #grid-bg{opacity:.31;mix-blend-mode:multiply}
 html[data-theme="light"] .cursor-aura{
   background:radial-gradient(circle,rgba(63,140,84,.075),rgba(63,140,84,.024) 35%,transparent 70%);
 }
-html[data-theme="light"] .scroll-progress>span{
-  background:#347e53;box-shadow:0 0 10px rgba(43,115,74,.18);
-}
 
 /* Navigation, typography and clean hierarchy. */
 html[data-theme="light"] .nav{border-bottom-color:var(--day-line-strong)}
