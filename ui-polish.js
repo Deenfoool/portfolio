@@ -30,6 +30,9 @@
       : `${iconMarkup(icon)}<span>${label}</span>`;
   };
 
+  // GitHub release pages are download actions, not repository links.
+  const isReleaseLink = el => /^https:\/\/github\.com\/[^/]+\/[^/]+\/releases\/(?:latest|tag\/[^/?#]+)(?:[/?#]|$)/i.test(el?.href || '');
+
   function polish(root = document) {
     root.querySelectorAll?.('span').forEach(iconizeGlyphSpan);
 
@@ -42,10 +45,16 @@
     root.querySelectorAll?.('.project-action.site').forEach(el => setIconLabel(el, 'external-link', 'Открыть сайт', true));
     root.querySelectorAll?.('.project-action.details').forEach(el => setIconLabel(el, 'expand', 'Подробнее', true));
 
-    root.querySelectorAll?.('.featured-actions .button.primary').forEach(el => setIconLabel(el, 'expand', 'Подробнее', true));
+    root.querySelectorAll?.('.featured-actions .button.primary').forEach(el => {
+      if (isReleaseLink(el)) setIconLabel(el, 'download', 'Скачать');
+      else setIconLabel(el, 'expand', 'Подробнее', true);
+    });
     root.querySelectorAll?.('.featured-actions .button.ghost[href]').forEach(el => {
-      const isGithub = el.href.includes('github.com');
-      setIconLabel(el, isGithub ? 'github' : 'external-link', isGithub ? 'GitHub' : 'Открыть сайт', !isGithub);
+      if (isReleaseLink(el)) setIconLabel(el, 'download', 'Скачать');
+      else {
+        const isGithub = el.href.includes('github.com');
+        setIconLabel(el, isGithub ? 'github' : 'external-link', isGithub ? 'GitHub' : 'Открыть сайт', !isGithub);
+      }
     });
 
     const heroGithub = root.querySelector?.('.hero-actions .button.ghost[href*="github.com"]');
@@ -79,8 +88,11 @@
 
     root.querySelectorAll?.('#modal-actions .button').forEach(el => {
       if (el.dataset.iconized) return;
-      const isGithub = el.href?.includes('github.com');
-      setIconLabel(el, isGithub ? 'github' : 'external-link', isGithub ? 'GitHub' : 'Открыть проект', !isGithub);
+      if (isReleaseLink(el)) setIconLabel(el, 'download', 'Скачать');
+      else {
+        const isGithub = el.href?.includes('github.com');
+        setIconLabel(el, isGithub ? 'github' : 'external-link', isGithub ? 'GitHub' : 'Открыть проект', !isGithub);
+      }
     });
 
     // Replace legacy placeholders too, so re-renders can't cause repeated Lucide warnings.
