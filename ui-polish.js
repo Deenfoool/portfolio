@@ -66,21 +66,7 @@
     const email = root.querySelector?.('.cta-actions a[href^="mailto:"]');
     if (email) setIconLabel(email, 'mail', 'Написать на почту', true);
 
-    const modalClose = root.querySelector?.('.modal-close');
-    if (modalClose && !modalClose.dataset.iconized) {
-      modalClose.dataset.iconized = '1';
-      modalClose.innerHTML = '<i data-lucide="x" aria-hidden="true"></i>';
-    }
-    const prev = root.querySelector?.('#gallery-prev');
-    if (prev && !prev.dataset.iconized) {
-      prev.dataset.iconized = '1';
-      prev.innerHTML = '<i data-lucide="chevron-left" aria-hidden="true"></i>';
-    }
-    const next = root.querySelector?.('#gallery-next');
-    if (next && !next.dataset.iconized) {
-      next.dataset.iconized = '1';
-      next.innerHTML = '<i data-lucide="chevron-right" aria-hidden="true"></i>';
-    }
+    // Modal controls are permanent inline SVG elements; do not replace them.
     const searchIcon = root.querySelector?.('.search > span');
     if (searchIcon && !searchIcon.dataset.iconized) {
       searchIcon.dataset.iconized = '1';
@@ -107,7 +93,8 @@
   function syncGalleryBackdrop() {
     const image = document.querySelector('#gallery-image');
     const stage = document.querySelector('.gallery-stage');
-    if (!image || !stage || !image.src) return;
+    if (!image || !stage) return;
+    if (!image.getAttribute('src')) { stage.style.removeProperty('--gallery-preview'); return; }
     const safe = image.src.replace(/"/g, '%22');
     stage.style.setProperty('--gallery-preview', `url("${safe}")`);
   }
@@ -125,8 +112,17 @@
   document.addEventListener('DOMContentLoaded', schedule, { once: true });
   window.addEventListener('load', schedule, { once: true });
 
-  const observer = new MutationObserver(schedule);
-  observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['src'] });
+  // Only newly inserted clickable elements need icon enhancement.
+  // Ignore gallery image src / counter / dot changes: these used to reprocess
+  // the entire page on every slide and caused unnecessary DOM churn.
+  const observer = new MutationObserver(changes => {
+    const relevant = changes.some(change => [...change.addedNodes].some(node =>
+      node.nodeType === 1 && (node.matches?.('a,button,[data-lucide]') ||
+        node.querySelector?.('a,button,[data-lucide]'))
+    ));
+    if (relevant) schedule();
+  });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
 
   const galleryImage = document.querySelector('#gallery-image');
   galleryImage?.addEventListener('load', syncGalleryBackdrop);

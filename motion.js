@@ -207,18 +207,7 @@
   });
   dynamicObserver.observe(document.body, { childList: true, subtree: true });
 
-  const galleryImage = document.querySelector('#gallery-image');
-  if (galleryImage) {
-    const galleryObserver = new MutationObserver(() => {
-      if (!galleryImage.getAttribute('src')) return;
-      galleryImage.classList.add('gallery-switching');
-      window.setTimeout(() => galleryImage.classList.remove('gallery-switching'), 500);
-    });
-    galleryObserver.observe(galleryImage, { attributes: true, attributeFilter: ['src'] });
-    galleryImage.addEventListener('load', () => {
-      requestAnimationFrame(() => galleryImage.classList.remove('gallery-switching'));
-    });
-  }
+  // Gallery state/visibility is owned by portfolio-ui.js; no extra timed blur.
 
   if (finePointer) {
     const aura = document.createElement('div');

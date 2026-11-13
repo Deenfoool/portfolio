@@ -29,8 +29,7 @@
 #project-modal .project-modal-backdrop{transition:backdrop-filter .32s ease,background .32s ease}
 #project-modal .project-dialog{opacity:0;filter:blur(9px);transition:transform .34s cubic-bezier(.2,.8,.2,1),opacity .24s ease,filter .3s ease!important}
 #project-modal.open .project-dialog{opacity:1;filter:blur(0)}
-#gallery-image{transition:opacity .22s ease,transform .3s cubic-bezier(.2,.8,.2,1),filter .22s ease!important}
-#gallery-image.gallery-switching{opacity:.16;transform:scale(.985);filter:blur(4px)}
+#gallery-image{transition:opacity .16s ease!important}
 .gallery-stage::before{transition:background-image .24s ease,opacity .3s ease!important}
 
 .cursor-aura{position:fixed;z-index:1;width:420px;height:420px;left:0;top:0;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(163,230,53,.045) 0,rgba(163,230,53,.018) 32%,transparent 68%);transform:translate3d(calc(var(--cursor-x, -500px) - 210px),calc(var(--cursor-y, -500px) - 210px),0);opacity:0;transition:opacity .3s ease;will-change:transform}.cursor-aura.active{opacity:1}

@@ -140,6 +140,7 @@
     img.src=url;
   });
 
+
   function updateGallery(name='Project'){
     const total=gallery.length;
     if(total){
@@ -147,7 +148,7 @@
       if(galleryImage.getAttribute('src')!==url) galleryImage.src=url;
       galleryImage.alt=`${name} — изображение ${galleryIndex+1} из ${total}`;
     }else{
-      galleryImage.removeAttribute('src');
+      if(galleryImage.hasAttribute('src'))galleryImage.removeAttribute('src');
       galleryImage.alt='';
     }
     const hasMultiple=total>1;
@@ -156,9 +157,20 @@
     galleryPrev.disabled=!hasMultiple;
     galleryNext.disabled=!hasMultiple;
     galleryCount.textContent=`${total?galleryIndex+1:0} / ${total}`;
-    galleryDots.innerHTML=total>1
-      ?gallery.map((_,i)=>`<button class="gallery-dot ${i===galleryIndex?'active':''}" type="button" data-gallery-index="${i}" aria-label="Изображение ${i+1} из ${total}" aria-current="${i===galleryIndex?'true':'false'}"></button>`).join('')
-      :'';
+
+    // Update existing dots instead of recreating their buttons on each click.
+    // This preserves keyboard focus and avoids triggering DOM observers.
+    if(!hasMultiple){
+      if(galleryDots.children.length)galleryDots.replaceChildren();
+    }else{
+      if(galleryDots.children.length!==total){
+        galleryDots.innerHTML=gallery.map((_,i)=>`<button class="gallery-dot" type="button" data-gallery-index="${i}" aria-label="Изображение ${i+1} из ${total}"></button>`).join('');
+      }
+      [...galleryDots.children].forEach((dot,i)=>{
+        dot.classList.toggle('active',i===galleryIndex);
+        dot.setAttribute('aria-current',i===galleryIndex?'true':'false');
+      });
+    }
   }
 
   function setGallery(i){
@@ -174,6 +186,7 @@
     galleryIndex=0;
     galleryLoading.hidden=false;
     updateGallery(r.name);
+    document.querySelector('.gallery-stage')?.style.removeProperty('--gallery-preview');
 
     const cached=galleryCache.get(cacheKey);
     if(cached?.length){
@@ -185,29 +198,21 @@
 
     const current=()=>id===galleryRequest && !modal.hidden;
     const images=cover(r);
-    const discovered=new Array(10).fill(null);
-    let primary=null;
 
-    // The image that is being viewed stays selected if another image is found.
-    const refresh=()=>{
-      if(!current()||!primary)return;
-      const selected=gallery[galleryIndex];
-      gallery=[primary,...discovered.filter(Boolean)];
-      galleryIndex=Math.max(0,gallery.indexOf(selected));
-      galleryLoading.hidden=true;
-      updateGallery(r.name);
-    };
+    // Probe extra screenshots concurrently, but only publish the final
+    // ordered gallery once; slide order/buttons never shift during navigation.
+    const additional=Promise.all(galleryCandidates(r).map(url=>probe(url)));
+    const primary=await probe(images.custom) || await probe(images.alternate) || images.fallback;
+    if(!current())return;
+    gallery=[primary];
+    galleryLoading.hidden=true;
+    updateGallery(r.name);
 
-    // Start the extra images now, but reveal the first cover immediately.
-    const extra=galleryCandidates(r).map(async(url,index)=>{
-      discovered[index]=await probe(url);
-      refresh();
-    });
-    primary=await probe(images.custom) || await probe(images.alternate) || images.fallback;
+    const extras=(await additional).filter(Boolean);
     if(!current())return;
-    refresh();
-    await Promise.all(extra);
-    if(!current())return;
+    gallery=[primary,...extras.filter(url=>url!==primary)];
+    galleryIndex=0;
+    updateGallery(r.name);
     galleryCache.set(cacheKey,gallery.slice());
   }
 
