@@ -3,8 +3,8 @@
   const API=`https://api.github.com/users/${USER}/repos?per_page=100&sort=updated&direction=desc`;
   const HIDDEN=new Set(['portfolio','suit-case-glider','deenfoool']);
   const spotlight=new Map([
-    ['island-lab',{title:'Island Lab',image:'media/island-lab.png',order:0}],
-    ['snowy-new-year',{title:'Snowy New Year',image:'media/snowy-new-year.jpg',order:1}]
+    ['island-lab',{title:'Island Lab',order:0}],
+    ['snowy-new-year',{title:'Snowy New Year',order:1}]
   ]);
   const highlight=r=>spotlight.get(r.name.toLowerCase());
   const featuredGrid=document.querySelector('#featured-grid');
@@ -37,13 +37,16 @@
     if(!r.has_pages)return'';
     return `https://${USER}.github.io/${encodeURIComponent(r.name)}/`;
   };
-  const cover=r=>{
+  // Single media convention for every repository, including featured ones:
+  // <default-branch>/portfolio/cover.png + gallery/01.png .. gallery/10.png.
+  const portfolioMediaBase=r=>{
     const branch=r.default_branch||'main';
-    return {
-      custom:highlight(r)?.image||`https://raw.githubusercontent.com/${USER}/${r.name}/${encodeURIComponent(branch)}/portfolio/cover.png`,
-      fallback:`https://opengraph.githubassets.com/1/${USER}/${r.name}`
-    };
+    return `https://raw.githubusercontent.com/${USER}/${encodeURIComponent(r.name)}/${encodeURIComponent(branch)}/portfolio`;
   };
+  const cover=r=>({
+    custom:portfolioMediaBase(r)+'/cover.png',
+    fallback:`https://opengraph.githubassets.com/1/${USER}/${encodeURIComponent(r.name)}`
+  });
 
   function readCachedRepos(){
     try{
@@ -106,10 +109,7 @@
   }
 
   function galleryCandidates(r){
-    const highlighted=highlight(r);
-    if(highlighted)return [highlighted.image];
-    const branch=r.default_branch||'main';
-    const base=`https://raw.githubusercontent.com/${USER}/${r.name}/${encodeURIComponent(branch)}/portfolio`;
+    const base=portfolioMediaBase(r);
     return [
       `${base}/cover.png`,
       ...Array.from({length:10},(_,i)=>`${base}/gallery/${String(i+1).padStart(2,'0')}.png`)
