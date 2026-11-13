@@ -5,7 +5,9 @@ body > #appearance-controls{
   position:fixed!important;
   top:13px;
   right:13px;
-  z-index:110;
+  z-index:1600!important;
+  isolation:isolate;
+  pointer-events:auto!important;
   display:flex;
   flex-direction:column;
   gap:7px;
@@ -187,6 +189,8 @@ body > #holiday-snow{
   pointer-events:none!important;
   contain:paint;
 }
+/* Keep full-page snow above content but below both fixed controls and the burst. */
+body > #holiday-snow{z-index:1250!important}
 body > #holiday-snow[hidden]{display:none!important}
 #holiday-snow .holiday-fall{
   position:absolute;
@@ -373,4 +377,184 @@ html[data-theme="light"] #holiday-snow .holiday-fall{
   #holiday-snow .holiday-fall{animation:none!important;will-change:auto}
   .holiday-garland .garland-halo{animation:none!important;opacity:.55}
   .holiday-garland .garland-glass{animation:none!important;opacity:.9}
+}
+
+
+/* Holiday controls float left of the fixed top-right rail. */
+body > #appearance-controls .holiday-settings{
+  position:absolute;
+  top:52px;
+  right:calc(100% + 10px);
+  min-width:212px;
+  padding:6px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  border:1px solid rgba(156,191,130,.42);
+  border-radius:13px;
+  background:rgba(17,25,21,.97);
+  box-shadow:0 15px 45px rgba(0,0,0,.4);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  animation:holiday-flyout-in .27s cubic-bezier(.16,1,.3,1) both;
+  pointer-events:auto;
+}
+#holiday-settings[hidden]{display:none!important}
+@keyframes holiday-flyout-in{
+  from{opacity:0;transform:translateX(16px) scale(.94)}
+  to{opacity:1;transform:translateX(0) scale(1)}
+}
+.holiday-setting{
+  display:flex;
+  width:100%;
+  align-items:center;
+  gap:9px;
+  min-height:42px;
+  padding:8px 9px;
+  border:1px solid rgba(174,204,160,.18);
+  border-radius:9px;
+  color:#cbd8cc;
+  background:#202b22;
+  font:600 12px Inter,system-ui,sans-serif;
+  cursor:pointer;
+  text-align:left;
+  touch-action:manipulation;
+  white-space:nowrap;
+}
+.holiday-setting:hover{background:#2c3e2e}
+.holiday-setting[aria-pressed="true"]{border-color:#527446;color:#e5f8d8}
+.holiday-setting[aria-pressed="false"]{color:#92a091;opacity:.85}
+.holiday-setting:focus-visible{outline:2px solid #a3e635;outline-offset:2px}
+.holiday-setting-label{flex:1}
+.holiday-setting-state{color:#b4de8b;font:700 10px "JetBrains Mono",monospace}
+.holiday-setting[aria-pressed="false"] .holiday-setting-state{color:#a5aaa4}
+html[data-theme="light"] body > #appearance-controls .holiday-settings{
+  background:rgba(249,253,246,.97);border-color:#bad1b3;
+  box-shadow:0 14px 42px #29432c25;
+}
+html[data-theme="light"] .holiday-setting{
+  color:#354e37;background:#eaf2e4;border-color:#c7dbbd;
+}
+html[data-theme="light"] .holiday-setting[aria-pressed="true"]{border-color:#84ae69;color:#295529}
+html[data-theme="light"] .holiday-setting-state{color:#578028}
+html[data-holiday="on"][data-holiday-snow="off"] body > #holiday-snow{display:none!important}
+html[data-holiday="on"][data-holiday-snow="off"] .snowy-theme > .snowfall{display:none!important}
+html[data-holiday="on"][data-holiday-caps="off"] .holiday-cap{display:none!important}
+
+/* One-shot blast starts exactly at the snowflake button and expands to cover
+   the viewport; it never traps clicks or needs a running animation loop. */
+body > #holiday-transition{
+  position:fixed!important;
+  inset:0;
+  z-index:1500!important;
+  overflow:hidden;
+  pointer-events:none!important;
+  opacity:1;
+  clip-path:circle(0 at var(--burst-x,95%) var(--burst-y,65px));
+  animation:holiday-front-expand 1.22s cubic-bezier(.19,.7,.24,1) both;
+}
+body > #holiday-transition::before,
+body > #holiday-transition::after{
+  content:"";
+  position:absolute;
+  inset:-40%;
+  pointer-events:none;
+  display:block;
+}
+body > #holiday-transition.holiday-transition-cold{
+  background:radial-gradient(ellipse at var(--burst-x,90%) var(--burst-y,70px),
+    rgba(255,255,255,.85),rgba(172,221,244,.54) 28%,
+    rgba(49,132,180,.19) 62%,transparent 90%);
+}
+body > #holiday-transition.holiday-transition-cold::before{
+  background:repeating-linear-gradient(154deg,transparent 0 12px,
+    rgba(235,250,255,.38) 13px 14px,transparent 16px 24px),
+    radial-gradient(ellipse at 54% 38%,rgba(255,255,255,.8),transparent 64%);
+  filter:blur(3px);
+  animation:holiday-cold-wind 1.22s ease-out both;
+}
+body > #holiday-transition.holiday-transition-cold::after{
+  background-image:
+    radial-gradient(circle,rgba(255,255,255,.99) 0 2px,transparent 2.8px),
+    radial-gradient(circle,rgba(247,253,255,.9) 0 1.7px,transparent 2.4px),
+    linear-gradient(118deg,transparent 48%,rgba(255,255,255,.64) 50%,transparent 52%);
+  background-size:63px 81px,109px 133px,22px 73px;
+  animation:holiday-blizzard-streaks 1.22s ease-out both;
+}
+body > #holiday-transition.holiday-transition-warm{
+  background:radial-gradient(ellipse at var(--burst-x,90%) var(--burst-y,70px),
+    rgba(255,228,163,.72),rgba(247,183,97,.47) 32%,
+    rgba(203,105,42,.23) 65%,transparent 90%);
+}
+body > #holiday-transition.holiday-transition-warm::before{
+  background:repeating-linear-gradient(151deg,transparent 0 17px,
+    rgba(255,223,164,.24) 18px 21px,transparent 23px 36px),
+    radial-gradient(ellipse at 42% 38%,rgba(255,238,200,.6),transparent 65%);
+  filter:blur(6px);
+  animation:holiday-warm-wind 1.22s ease-out both;
+}
+body > #holiday-transition.holiday-transition-warm::after{
+  background-image:
+    radial-gradient(ellipse,rgba(249,185,104,.55) 0 1px,transparent 2px),
+    linear-gradient(145deg,transparent 47%,rgba(255,243,209,.34) 50%,transparent 53%);
+  background-size:109px 81px,36px 74px;
+  animation:holiday-blizzard-streaks 1.22s reverse ease-out both;
+}
+@keyframes holiday-front-expand{
+  0%{clip-path:circle(0 at var(--burst-x) var(--burst-y));opacity:1}
+  58%{clip-path:circle(125vmax at var(--burst-x) var(--burst-y));opacity:.9}
+  100%{clip-path:circle(170vmax at var(--burst-x) var(--burst-y));opacity:0}
+}
+@keyframes holiday-cold-wind{
+  from{transform:translate3d(30%,-30%,0) rotate(-6deg);opacity:.1}
+  45%{opacity:1}
+  to{transform:translate3d(-22%,26%,0) rotate(-6deg);opacity:.15}
+}
+@keyframes holiday-warm-wind{
+  from{transform:translate3d(28%,-33%,0) rotate(-10deg);opacity:.3}
+  50%{opacity:1}
+  to{transform:translate3d(-26%,24%,0) rotate(-10deg);opacity:.1}
+}
+@keyframes holiday-blizzard-streaks{
+  from{transform:translate3d(35%,-40%,0);opacity:.1}
+  42%{opacity:1}
+  to{transform:translate3d(-36%,38%,0);opacity:0}
+}
+html.holiday-entering .holiday-cap,
+html.holiday-entering .holiday-garland{
+  animation:holiday-decor-appear .38s ease-out backwards;
+  animation-delay:var(--winter-delay,0ms);
+}
+html.holiday-exiting .holiday-cap,
+html.holiday-exiting .holiday-garland{
+  animation:holiday-decor-depart .35s ease-in both;
+  animation-delay:var(--winter-delay,0ms);
+}
+html.holiday-exiting body > #holiday-snow{animation:holiday-snow-clear 1.2s ease-in both}
+@keyframes holiday-decor-appear{
+  from{opacity:0;translate:24px -8px}
+  to{opacity:1;translate:none}
+}
+@keyframes holiday-decor-depart{
+  from{opacity:1;translate:none}
+  to{opacity:0;translate:-28px 10px}
+}
+@keyframes holiday-snow-clear{
+  0%,24%{opacity:1}
+  100%{opacity:0}
+}
+@media(max-width:600px){
+  body > #appearance-controls .holiday-settings{
+    top:42px;
+    right:calc(100% + 8px);
+    min-width:min(208px,calc(100vw - 95px));
+  }
+  .holiday-setting{min-height:42px}
+}
+@media(prefers-reduced-motion:reduce){
+  body > #holiday-transition{display:none!important;animation:none!important}
+  html.holiday-entering .holiday-cap,html.holiday-entering .holiday-garland,
+  html.holiday-exiting .holiday-cap,html.holiday-exiting .holiday-garland{animation:none!important}
+  html.holiday-exiting body > #holiday-snow{animation:none!important}
+  #holiday-settings{animation:none!important}
 }

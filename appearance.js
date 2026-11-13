@@ -4,10 +4,20 @@
   const root=document.documentElement;
   const themeButton=document.getElementById('theme-toggle');
   const holidayButton=document.getElementById('holiday-toggle');
-  if(!themeButton||!holidayButton)return;
+  const flyout=document.getElementById('holiday-settings');
+  const snowfallButton=document.getElementById('snowfall-toggle');
+  const snowcapsButton=document.getElementById('snowcaps-toggle');
+  if(!themeButton||!holidayButton||!flyout||!snowfallButton||!snowcapsButton)return;
 
   const THEME_KEY='portfolio-theme-v1';
   const HOLIDAY_KEY='portfolio-holiday-v1';
+  const SNOW_KEY='portfolio-holiday-snow-v1';
+  const CAPS_KEY='portfolio-holiday-caps-v1';
+  const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true;
+  let desiredHoliday=root.dataset.holiday==='on';
+  let transitionCounter=0;
+  let transitionTimer=0;
+  let burst=null;
   const CAP_SELECTORS=[
     '.nav','.terminal-card','.stats','.featured-card','.project',
     '.modworks-entry-card','.cta','.support-card','.project-dialog',
@@ -115,7 +125,9 @@
     cap.appendChild(snow);
     return cap;
   }
-  const wantsCap=host=>root.dataset.holiday==='on'||host.matches(SNOWY_SELECTORS);
+  const wantsCap=host=>root.dataset.holiday==='on'
+    ?root.dataset.holidayCaps!=='off'
+    :host.matches(SNOWY_SELECTORS);
   function ensureCap(host){
     if(caps.has(host))return;
     const cap=createCap(host);
@@ -222,8 +234,10 @@
   const projectModal=document.getElementById('project-modal');
   const dialog=projectModal?.querySelector('.project-dialog');
   function syncCaps(scope=document){
-    if(root.dataset.holiday==='on')select(CAP_SELECTORS,scope).forEach(ensureCap);
-    select(SNOWY_SELECTORS,scope).forEach(ensureCap);
+    if(root.dataset.holiday==='on'&&root.dataset.holidayCaps!=='off')
+      select(CAP_SELECTORS,scope).forEach(ensureCap);
+    if(root.dataset.holiday==='off')
+      select(SNOWY_SELECTORS,scope).forEach(ensureCap);
     pruneCaps();
   }
   function decorate(scope=document){
@@ -242,23 +256,118 @@
     if(meta)meta.setAttribute('content',light?'#f2f6f1':'#09090b');
     persist(THEME_KEY,root.dataset.theme);
   }
-  function applyHoliday(enabled){
-    root.dataset.holiday=enabled?'on':'off';
-    holidayButton.setAttribute('aria-pressed',String(enabled));
-    holidayButton.setAttribute('aria-label',enabled?'Выключить новогоднюю тему':'Включить новогоднюю тему');
-    holidayButton.title=enabled?'Выключить снег и гирлянды':'Включить снег и гирлянды';
-    snowOverlay.hidden=!enabled;
-    if(enabled)decorate();
-    else{
+  function syncSubcontrols(){
+    const on=desiredHoliday;
+    holidayButton.setAttribute('aria-pressed',String(on));
+    holidayButton.setAttribute('aria-expanded',String(on));
+    holidayButton.setAttribute('aria-label',on?'Выключить новогоднюю тему':'Включить новогоднюю тему');
+    holidayButton.title=on?'Выключить новогоднюю тему':'Включить новогоднюю тему';
+    flyout.hidden=!on;
+    const snowOn=root.dataset.holidaySnow!=='off';
+    const capsOn=root.dataset.holidayCaps!=='off';
+    snowfallButton.setAttribute('aria-pressed',String(snowOn));
+    snowfallButton.setAttribute('aria-label',snowOn?'Выключить снегопад':'Включить снегопад');
+    document.getElementById('snowfall-state').textContent=snowOn?'Вкл.':'Выкл.';
+    snowcapsButton.setAttribute('aria-pressed',String(capsOn));
+    snowcapsButton.setAttribute('aria-label',capsOn?'Выключить снежные шапки':'Включить снежные шапки');
+    document.getElementById('snowcaps-state').textContent=capsOn?'Вкл.':'Выкл.';
+  }
+  function syncSnowfall(){
+    snowOverlay.hidden=root.dataset.holiday!=='on'||root.dataset.holidaySnow==='off';
+  }
+  function setSnowfall(enabled){
+    root.dataset.holidaySnow=enabled?'on':'off';
+    persist(SNOW_KEY,root.dataset.holidaySnow);
+    syncSnowfall();
+    syncSubcontrols();
+  }
+  function setCaps(enabled){
+    root.dataset.holidayCaps=enabled?'on':'off';
+    persist(CAPS_KEY,root.dataset.holidayCaps);
+    syncCaps();
+    syncSubcontrols();
+  }
+  function setDecorDelay(host){
+    const rect=host.getBoundingClientRect();
+    const width=Math.max(1,window.innerWidth),height=Math.max(1,window.innerHeight);
+    const fromX=width-42,fromY=85;
+    const x=Math.max(0,Math.min(width,rect.left+rect.width/2));
+    const y=Math.max(0,Math.min(height,rect.top+Math.min(rect.height,80)/2));
+    const progress=Math.hypot(x-fromX,y-fromY)/Math.hypot(width,height);
+    host.style.setProperty('--winter-delay',Math.round(progress*600)+'ms');
+  }
+  function stageDecorDelays(){
+    document.querySelectorAll('.holiday-cap,.holiday-garland').forEach(el=>{
+      setDecorDelay(el.classList.contains('holiday-cap')&&el.parentElement?.classList.contains('project-dialog-frame')
+        ?el.parentElement:el.parentElement||el);
+      const delay=(el.parentElement?.style.getPropertyValue('--winter-delay')||'0ms');
+      el.style.setProperty('--winter-delay',delay);
+    });
+  }
+  function endBurst(token){
+    if(token!==transitionCounter)return;
+    if(transitionTimer){clearTimeout(transitionTimer);transitionTimer=0;}
+    burst?.remove();
+    burst=null;
+    root.classList.remove('holiday-entering','holiday-exiting');
+    if(!desiredHoliday){
+      root.dataset.holiday='off';
       clearGarlands();
-      syncCaps(); // Standalone Snowy New Year keeps its own snowy edge.
+      syncCaps();
+    }else{
+      root.dataset.holiday='on';
+      decorate();
+    }
+    syncSnowfall();
+  }
+  function runBurst(kind){
+    const token=++transitionCounter;
+    if(transitionTimer)clearTimeout(transitionTimer);
+    burst?.remove();
+    root.classList.remove('holiday-entering','holiday-exiting');
+    if(reducedMotion){
+      endBurst(token);
+      return;
+    }
+    const rect=holidayButton.getBoundingClientRect();
+    burst=document.createElement('div');
+    burst.id='holiday-transition';
+    burst.className='holiday-transition-'+kind;
+    burst.setAttribute('aria-hidden','true');
+    burst.style.setProperty('--burst-x',(rect.left+rect.width/2)+'px');
+    burst.style.setProperty('--burst-y',(rect.top+rect.height/2)+'px');
+    document.body.appendChild(burst);
+    root.classList.add(kind==='cold'?'holiday-entering':'holiday-exiting');
+    stageDecorDelays();
+    burst.addEventListener('animationend',event=>{
+      // Pseudo-element animationend events may arrive before the layer's own.
+      if(event.target===burst&&!event.pseudoElement)endBurst(token);
+    });
+    transitionTimer=setTimeout(()=>endBurst(token),1400);
+  }
+  function applyHoliday(enabled,animated=false){
+    desiredHoliday=enabled;
+    if(enabled){
+      root.dataset.holiday='on';
+      decorate();
+      syncSnowfall();
+      if(animated)runBurst('cold');
+      else endBurst(++transitionCounter);
+    }else if(animated){
+      // Keep ornaments long enough for the warm front to sweep them away.
+      runBurst('warm');
+    }else{
+      endBurst(++transitionCounter);
     }
     persist(HOLIDAY_KEY,enabled?'on':'off');
+    syncSubcontrols();
   }
   themeButton.addEventListener('click',()=>applyTheme(root.dataset.theme==='light'?'dark':'light'));
-  holidayButton.addEventListener('click',()=>applyHoliday(root.dataset.holiday!=='on'));
+  holidayButton.addEventListener('click',()=>applyHoliday(!desiredHoliday,true));
+  snowfallButton.addEventListener('click',()=>setSnowfall(root.dataset.holidaySnow==='off'));
+  snowcapsButton.addEventListener('click',()=>setCaps(root.dataset.holidayCaps==='off'));
   applyTheme(root.dataset.theme);
-  applyHoliday(root.dataset.holiday==='on');
+  applyHoliday(desiredHoliday,false);
 
   // GitHub API refreshes cards: attach to each new card, not to the viewport.
   const observer=new MutationObserver(records=>{
