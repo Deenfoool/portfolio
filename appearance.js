@@ -13,10 +13,9 @@
     '.modworks-entry-card','.cta','.support-card','.project-dialog',
     '.about-content'
   ].join(',');
+  // Only real framed sections, not the "All projects" heading or CTA.
   const GARLAND_SELECTORS=[
-    '.nav','.stats','.modworks-entry-card','.cta',
-    '.featured-section .section-heading','.projects-section .section-heading',
-    '.support-card'
+    '.nav','.stats','.modworks-entry-card','.support-card'
   ].join(',');
   const SNOWY_SELECTORS='.project.snowy-theme,.featured-card.snowy-theme,.project-dialog.snowy-theme';
   const persist=(key,value)=>{try{localStorage.setItem(key,value)}catch{}};
@@ -134,6 +133,92 @@
     }
   }
 
+
+  // Generate one wire for the exact host width. Every arch starts AND ends
+  // at the block's bottom edge; no repeated bitmap can land mid-wave.
+  const GARLAND_HEIGHT=52;
+  const GARLAND_COLORS=['red','gold','blue','green'];
+  const garlands=new Map();
+  const garlandWidths=new WeakMap();
+  const garlandObserver=typeof ResizeObserver==='function'
+    ?new ResizeObserver(entries=>{
+      for(const entry of entries){
+        const host=entry.target,lights=garlands.get(host);
+        if(lights)renderGarland(host,lights);
+      }
+    }):null;
+
+  function renderGarland(host,lights){
+    const width=Math.max(0,Math.round(host.clientWidth||host.getBoundingClientRect().width));
+    if(width<20||garlandWidths.get(lights)===width)return;
+    garlandWidths.set(lights,width);
+    const waves=Math.max(1,Math.round(width/230));
+    const segment=width/waves;
+    const rope=['M 0 2'];
+    for(let i=0;i<waves;i++){
+      const start=i*segment,mid=start+segment/2,end=(i+1)*segment;
+      // Two cubic halves: horizontal tangent at every attachment point,
+      // never a sharp peak at the ends of neighbouring waves.
+      rope.push('C '+(start+segment/6).toFixed(2)+' 2 '+
+        (start+segment/3).toFixed(2)+' 31 '+mid.toFixed(2)+' 31');
+      rope.push('C '+(mid+segment/6).toFixed(2)+' 31 '+
+        (mid+segment/3).toFixed(2)+' 2 '+end.toFixed(2)+' 2');
+    }
+    const bulbCount=Math.max(4,Math.round(width/43));
+    const bulbs=[];
+    for(let i=0;i<bulbCount;i++){
+      const x=(i+.5)*width/bulbCount;
+      const wave=Math.min(waves-1,Math.floor(x/segment));
+      const t=(x-wave*segment)/segment;
+      const phase=t<=.5?2*t:2*(1-t);
+      const ease=phase*phase*(3-2*phase);
+      const y=2+29*ease;
+      const color=GARLAND_COLORS[i%GARLAND_COLORS.length];
+      bulbs.push('<g class="garland-bulb garland-'+color+'" transform="translate('+
+        x.toFixed(2)+' '+y.toFixed(2)+')">'+
+        '<path d="M0 0v4" stroke="#36553c" stroke-width="1.8"/>'+
+        '<rect x="-3.5" y="3" width="7" height="3.5" rx="1.1" fill="#36533b"/>'+
+        '<ellipse class="garland-halo" cx="0" cy="11" rx="10" ry="10"/>'+
+        '<ellipse class="garland-glass" cx="0" cy="10.3" rx="3.5" ry="4.8"/>'+
+        '<ellipse cx="-1.2" cy="8.7" rx=".75" ry="1.3" fill="#fff" opacity=".78"/>'+
+        '</g>');
+    }
+    lights.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" '+
+      'viewBox="0 0 '+width+' '+GARLAND_HEIGHT+'" preserveAspectRatio="none" '+
+      'aria-hidden="true" focusable="false">'+
+      '<path d="'+rope.join(' ')+'" fill="none" stroke="#21392a" stroke-width="3" />'+
+      '<path d="'+rope.join(' ')+'" fill="none" stroke="#517b56" stroke-width="1.1"/>'+
+      bulbs.join('')+'</svg>';
+  }
+  function ensureGarland(host){
+    if(garlands.has(host))return;
+    host.classList.add('holiday-host');
+    const lights=document.createElement('span');
+    lights.className='holiday-garland';
+    lights.setAttribute('aria-hidden','true');
+    host.appendChild(lights);
+    garlands.set(host,lights);
+    renderGarland(host,lights);
+    garlandObserver?.observe(host);
+  }
+  function clearGarlands(){
+    for(const [host,lights] of garlands){
+      garlandObserver?.unobserve(host);
+      lights.remove();
+      host.classList.remove('holiday-host');
+    }
+    garlands.clear();
+  }
+  function pruneGarlands(){
+    for(const [host,lights] of garlands){
+      if(root.dataset.holiday==='on' && host.isConnected && host.matches(GARLAND_SELECTORS))continue;
+      garlandObserver?.unobserve(host);
+      lights.remove();
+      host.classList.remove('holiday-host');
+      garlands.delete(host);
+    }
+  }
+
   const projectModal=document.getElementById('project-modal');
   const dialog=projectModal?.querySelector('.project-dialog');
   function syncCaps(scope=document){
@@ -142,16 +227,8 @@
     pruneCaps();
   }
   function decorate(scope=document){
-    if(root.dataset.holiday==='on'){
-      select(GARLAND_SELECTORS,scope).forEach(host=>{
-        if([...host.children].some(el=>el.classList.contains('holiday-garland')))return;
-        host.classList.add('holiday-host');
-        const lights=document.createElement('span');
-        lights.className='holiday-garland';
-        lights.setAttribute('aria-hidden','true');
-        host.appendChild(lights);
-      });
-    }
+    if(root.dataset.holiday==='on')
+      select(GARLAND_SELECTORS,scope).forEach(ensureGarland);
     syncCaps(scope);
   }
 
@@ -173,8 +250,7 @@
     snowOverlay.hidden=!enabled;
     if(enabled)decorate();
     else{
-      document.querySelectorAll('.holiday-garland').forEach(el=>el.remove());
-      document.querySelectorAll('.holiday-host').forEach(el=>el.classList.remove('holiday-host'));
+      clearGarlands();
       syncCaps(); // Standalone Snowy New Year keeps its own snowy edge.
     }
     persist(HOLIDAY_KEY,enabled?'on':'off');
@@ -196,6 +272,7 @@
       }
     }
     pruneCaps();
+    pruneGarlands();
   });
   ['projects-grid','featured-grid'].forEach(id=>{
     const grid=document.getElementById(id);
@@ -203,5 +280,8 @@
   });
   if(projectModal)observer.observe(projectModal,{attributes:true,attributeFilter:['hidden','class']});
   if(dialog)observer.observe(dialog,{attributes:true,attributeFilter:['class']});
+  if(!garlandObserver)window.addEventListener('resize',()=>{
+    for(const [host,lights] of garlands)renderGarland(host,lights);
+  },{passive:true});
   decorate();
 })();

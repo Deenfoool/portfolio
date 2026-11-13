@@ -298,35 +298,79 @@ html[data-theme="light"] #holiday-snow .holiday-fall{
   #project-modal .project-dialog{max-height:calc(100vh - 16px)}
   .modworks-entry-card.holiday-cap-host .modworks-entry-art{border-radius:0 0 13px 13px}
 }
+/* Garland cable starts and finishes at the two bottom corners.
+   Lamps are SVG nodes so each colour group can light in turn. */
+.nav.holiday-host,
+.stats.holiday-host,
+.modworks-entry-card.holiday-host,
+.support-card.holiday-host{position:relative}
+.modworks-entry-card.holiday-host,
+.support-card.holiday-host{overflow:visible!important}
+.modworks-entry-card.holiday-host .modworks-entry-art{overflow:hidden}
+.support-card.holiday-host::before{
+  inset:0;
+  width:100%;
+  height:100%;
+  border-radius:inherit;
+  clip-path:none;
+  background:radial-gradient(ellipse at 10% 44%,rgba(163,230,53,.1),transparent 58%);
+}
 .holiday-host > .holiday-garland{
   position:absolute;
+  top:calc(100% - 2px);
+  bottom:auto;
   left:0;
   right:0;
+  width:100%;
+  height:52px;
   display:block;
+  z-index:16;
   pointer-events:none!important;
+  overflow:visible;
+  background:none;
+  filter:none;
+  animation:none;
 }
-.holiday-host > .holiday-garland{
-  bottom:-13px;
-  height:36px;
-  z-index:14;
-  background:url("assets/christmas-garland.svg") bottom left / 440px 36px repeat-x;
-  filter:drop-shadow(0 0 4px rgba(238,233,147,.32));
-  animation:holiday-lights 3s ease-in-out infinite alternate;
+.holiday-garland svg{
+  display:block;
+  width:100%;
+  height:100%;
+  overflow:visible;
+  pointer-events:none;
 }
-@keyframes holiday-lights{
-  from{filter:brightness(.86) drop-shadow(0 0 3px rgba(219,241,164,.12))}
-  to{filter:brightness(1.2) drop-shadow(0 0 5px rgba(254,223,148,.5))}
+.holiday-garland .garland-red{--bulb-color:#fa646a;--bulb-phase:0s}
+.holiday-garland .garland-gold{--bulb-color:#ffda79;--bulb-phase:-3.6s}
+.holiday-garland .garland-blue{--bulb-color:#75ccff;--bulb-phase:-2.4s}
+.holiday-garland .garland-green{--bulb-color:#9bf0a4;--bulb-phase:-1.2s}
+.holiday-garland .garland-halo{
+  fill:var(--bulb-color);
+  opacity:.18;
+  filter:blur(3px);
+  animation:garland-colour-chase 4.8s ease-in-out infinite;
+  animation-delay:var(--bulb-phase);
 }
-.nav.holiday-host > .holiday-garland{bottom:-20px}
-.project-dialog.holiday-host > .holiday-garland{z-index:18}
-.section-heading.holiday-host > .holiday-garland{bottom:-35px;height:27px;background-size:440px 27px}
-.support-card.holiday-host > .holiday-garland{bottom:-9px}
+.holiday-garland .garland-glass{
+  fill:var(--bulb-color);
+  opacity:.72;
+  filter:drop-shadow(0 0 1.5px var(--bulb-color));
+  animation:garland-glass-chase 4.8s ease-in-out infinite;
+  animation-delay:var(--bulb-phase);
+}
+@keyframes garland-colour-chase{
+  0%,8%,12%{opacity:1}
+  24%,100%{opacity:.18}
+}
+@keyframes garland-glass-chase{
+  0%,8%,12%{opacity:1}
+  24%,100%{opacity:.72}
+}
 @media(max-width:650px){
   #holiday-snow .holiday-fall-near{opacity:.7}
   #holiday-snow .holiday-fall-far{opacity:.55}
-  .holiday-host > .holiday-garland{height:27px;background-size:440px 27px}
+  .holiday-host > .holiday-garland{height:52px}
 }
 @media(prefers-reduced-motion:reduce){
-  #holiday-snow .holiday-fall,
-  .holiday-host > .holiday-garland{animation:none!important;will-change:auto}
+  #holiday-snow .holiday-fall{animation:none!important;will-change:auto}
+  .holiday-garland .garland-halo{animation:none!important;opacity:.55}
+  .holiday-garland .garland-glass{animation:none!important;opacity:.9}
 }
