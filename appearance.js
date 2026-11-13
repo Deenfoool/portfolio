@@ -295,7 +295,7 @@
     themeButton.setAttribute('aria-label',light?'Включить тёмную тему':'Включить светлую тему');
     themeButton.title=light?'Переключить на ночь':'Переключить на день';
     const meta=document.querySelector('meta[name="theme-color"]');
-    if(meta)meta.setAttribute('content',light?'#f2f6f1':'#09090b');
+    if(meta)meta.setAttribute('content',light?'#f5f7f3':'#09090b');
     persist(THEME_KEY,root.dataset.theme);
   }
   function syncSubcontrols(){

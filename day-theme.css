@@ -1,0 +1,490 @@
+/* Day palette — deliberately independent from the dark theme.
+   Loaded after appearance.css; every visual override is light-mode only.
+   Neutral mineral surfaces, deep green UI accents, and dark feature panels. */
+html[data-theme="light"]{
+  color-scheme:light;
+  --day-page:#f5f7f3;
+  --day-paper:#ffffff;
+  --day-ink:#1d2e24;
+  --day-muted:#536559;
+  --day-subtle:#64786a;
+  --day-line:#d7e1d6;
+  --day-line-strong:#bccfbd;
+  --day-accent:#2e704b;
+  --day-accent-dark:#23583b;
+  --day-accent-soft:#e8f2e8;
+  --day-shadow:0 16px 44px rgba(33,65,42,.075);
+}
+html[data-theme="light"] body{
+  background:
+    radial-gradient(ellipse 760px 500px at 14% 2%,rgba(206,230,207,.37),transparent 80%),
+    radial-gradient(ellipse 670px 520px at 93% 37%,rgba(221,235,219,.28),transparent 82%),
+    var(--day-page);
+  color:var(--day-ink);
+}
+html[data-theme="light"] .noise{opacity:.012}
+html[data-theme="light"] #grid-bg{opacity:.31;mix-blend-mode:multiply}
+html[data-theme="light"] .cursor-aura{
+  background:radial-gradient(circle,rgba(63,140,84,.075),rgba(63,140,84,.024) 35%,transparent 70%);
+}
+html[data-theme="light"] .scroll-progress>span{
+  background:#347e53;box-shadow:0 0 10px rgba(43,115,74,.18);
+}
+
+/* Navigation, typography and clean hierarchy. */
+html[data-theme="light"] .nav{border-bottom-color:var(--day-line-strong)}
+html[data-theme="light"] .brand{color:#193528}
+html[data-theme="light"] .brand-dot{
+  background:#3c945a;box-shadow:0 0 0 5px rgba(70,145,83,.1);
+}
+html[data-theme="light"] .nav nav a{color:#425949}
+html[data-theme="light"] .nav nav a:hover{color:#226038}
+html[data-theme="light"] .nav nav a.nav-github{
+  background:rgba(255,255,255,.91);
+  color:#284b34;
+  border-color:#c7d7c9;
+  box-shadow:0 3px 12px rgba(38,76,45,.05);
+}
+html[data-theme="light"] .nav nav a.nav-github:hover{
+  background:#ebf4ea;border-color:#90b495;
+}
+html[data-theme="light"] .eyebrow,
+html[data-theme="light"] .pulse,
+html[data-theme="light"] .hero h1 span,
+html[data-theme="light"] .about h2 em{
+  color:var(--day-accent);
+}
+html[data-theme="light"] .pulse{
+  background:#368352;box-shadow:0 0 0 4px rgba(56,131,82,.12);
+}
+html[data-theme="light"] .hero h1,
+html[data-theme="light"] .section-heading h2,
+html[data-theme="light"] .about h2{color:#182c22}
+html[data-theme="light"] .hero-text,
+html[data-theme="light"] .section-note,
+html[data-theme="light"] .about-content>p{color:var(--day-muted)}
+html[data-theme="light"] .stats{
+  border-top-color:var(--day-line-strong);
+  border-bottom-color:var(--day-line-strong);
+  background:rgba(255,255,255,.38);
+}
+html[data-theme="light"] .stats>div{border-color:var(--day-line)}
+html[data-theme="light"] .stats b{color:#1d3726}
+html[data-theme="light"] .stats span{color:#536959}
+html[data-theme="light"] .about{border-top-color:var(--day-line-strong)}
+html[data-theme="light"] .about-label>span{color:#63776a}
+html[data-theme="light"] .tech-row span{
+  background:#fff;
+  color:#375846;
+  border-color:var(--day-line);
+  box-shadow:0 2px 7px rgba(35,65,43,.035);
+}
+html[data-theme="light"] footer{border-top-color:var(--day-line-strong);color:#53685b}
+html[data-theme="light"] footer a{color:#2f6247}
+html[data-theme="light"] footer a:hover{color:#1d5437}
+
+/* Small identity flourish: the terminal stays a purposeful dark surface.
+   Making code/terminal output pale was one of the old theme mismatches. */
+html[data-theme="light"] .terminal-card{
+  background:linear-gradient(150deg,#1b2c23,#13241c 82%);
+  border-color:#344f3d;
+  color:#e8f2e9;
+  box-shadow:0 28px 70px rgba(25,57,39,.20);
+}
+html[data-theme="light"] .terminal-top{
+  background:rgba(230,255,231,.045);
+  border-bottom-color:#345240;
+  color:#aec2b1;
+}
+html[data-theme="light"] .terminal-top span{background:#698b77}
+html[data-theme="light"] .terminal-top span:first-child{background:#bc6f6a}
+html[data-theme="light"] .terminal-top span:nth-child(2){background:#d4b875}
+html[data-theme="light"] .terminal-top span:nth-child(3){background:#81b285}
+html[data-theme="light"] .terminal-body,
+html[data-theme="light"] .terminal-body div{color:#a8c1af}
+html[data-theme="light"] .terminal-body strong{color:#f1f7f0}
+html[data-theme="light"] .terminal-body .green,
+html[data-theme="light"] .terminal-body i{color:#b9ea87}
+html[data-theme="light"] .terminal-body .green::after{background:#b9ea87}
+@media(min-width:851px) and (pointer:fine){
+  html[data-theme="light"].motion-enabled .terminal-card:hover{
+    border-color:#5b9868;
+    box-shadow:0 32px 80px rgba(26,64,40,.23),0 0 0 1px rgba(66,141,78,.1);
+  }
+}
+
+/* Project grid and featured grid share a consistent white surface.
+   Dark overlays, hard black hover shadows and neon chips are replaced. */
+html[data-theme="light"] .project,
+html[data-theme="light"] .featured-card{
+  background:var(--day-paper);
+  border:1px solid var(--day-line);
+  color:var(--day-ink);
+  box-shadow:var(--day-shadow);
+}
+html[data-theme="light"] .project:hover,
+html[data-theme="light"] .featured-card:hover,
+html[data-theme="light"].motion-enabled .featured-card.motion-tilt:hover{
+  border-color:#91b598;
+  box-shadow:0 22px 52px rgba(36,82,47,.13);
+}
+html[data-theme="light"].motion-enabled .featured-card.motion-tilt::after{
+  background:radial-gradient(360px circle at var(--light-x,50%) var(--light-y,50%),rgba(63,133,72,.1),transparent 52%);
+  mix-blend-mode:multiply;
+}
+html[data-theme="light"] .project-image,
+html[data-theme="light"] .featured-media{background:#e8eee8}
+html[data-theme="light"] .project-image img,
+html[data-theme="light"] .featured-media img{opacity:1}
+html[data-theme="light"] .project-image:after{
+  background:linear-gradient(180deg,transparent 59%,rgba(15,30,19,.085));
+}
+html[data-theme="light"] .featured-badge{
+  background:rgba(247,251,244,.95);
+  color:#275d38;
+  border-color:rgba(102,147,108,.52);
+  box-shadow:0 5px 16px rgba(28,50,35,.14);
+}
+html[data-theme="light"] .featured-kicker,
+html[data-theme="light"] .project-meta,
+html[data-theme="light"] .project-desc,
+html[data-theme="light"] .featured-body>p{
+  color:var(--day-muted);
+}
+html[data-theme="light"] .featured-title,
+html[data-theme="light"] .project-title,
+html[data-theme="light"] .project-title strong{
+  color:#203429;
+}
+html[data-theme="light"] .featured-title span,
+html[data-theme="light"] .project-title span{color:#6b8872}
+html[data-theme="light"] .featured-title:hover span,
+html[data-theme="light"] .project:hover .project-title span{color:#2d7544}
+html[data-theme="light"] .project-meta .language{color:#3f624c}
+html[data-theme="light"] .lang-dot{background:#5c9870}
+html[data-theme="light"] .project-actions{border-top-color:#e0e9df}
+html[data-theme="light"] .featured-topics span,
+html[data-theme="light"] .modal-topics span{
+  background:#eef4ed;
+  color:#395d45;
+  border-color:#d3e2d2;
+}
+html[data-theme="light"] .project-action.github,
+html[data-theme="light"] .project-action.download,
+html[data-theme="light"] .project-action.details{
+  background:#f4f8f3;
+  color:#315e41;
+  border-color:#c7dac9;
+}
+html[data-theme="light"] .project-action.github:hover,
+html[data-theme="light"] .project-action.download:hover,
+html[data-theme="light"] .project-action.details:hover{
+  background:#e6f1e6;color:#204d32;border-color:#91b998;
+}
+html[data-theme="light"] .project-action.site{
+  background:var(--day-accent);
+  border-color:var(--day-accent);
+  color:#fff;
+}
+html[data-theme="light"] .project-action.site:hover{
+  background:var(--day-accent-dark);
+  border-color:var(--day-accent-dark);
+  color:#fff;
+}
+html[data-theme="light"] .loading-card{
+  background:rgba(255,255,255,.7);
+  color:#516757;
+  border-color:#bccfbd;
+}
+html[data-theme="light"] .empty{color:#566c5d}
+
+/* Filters and search — clearly legible states and focused input. */
+html[data-theme="light"] .search{
+  background:#fff;
+  border-color:var(--day-line-strong);
+  box-shadow:0 4px 16px rgba(32,67,38,.045);
+}
+html[data-theme="light"] .search>span{color:#587562}
+html[data-theme="light"] .search:focus-within{
+  border-color:#4b9663;
+  box-shadow:0 0 0 3px rgba(65,143,87,.14);
+}
+html[data-theme="light"] .search input{color:#1d3929;caret-color:#2f774d}
+html[data-theme="light"] .search input::placeholder{color:#667b6c;opacity:1}
+html[data-theme="light"] .filter{
+  background:#fff;
+  border-color:var(--day-line);
+  color:#48634f;
+}
+html[data-theme="light"] .filter:hover{
+  color:#25633b;background:#ecf5ed;border-color:#accdaf;
+}
+html[data-theme="light"] .filter.active{
+  background:#dcf0df;
+  color:#205a34;
+  border-color:#84b28b;
+  box-shadow:inset 0 0 0 1px rgba(43,112,59,.06);
+}
+html[data-theme="light"] .filter-icon-mono{filter:none}
+html[data-theme="light"] .filter:focus-visible,
+html[data-theme="light"] .search input:focus-visible,
+html[data-theme="light"] .featured-title:focus-visible,
+html[data-theme="light"] .project-action:focus-visible{
+  outline:2px solid #348454;outline-offset:3px;
+}
+
+/* Buttons use a darker green for reliable white text contrast. */
+html[data-theme="light"] .button.primary{
+  background:var(--day-accent);
+  color:#fff;
+  box-shadow:0 6px 18px rgba(37,104,61,.15);
+}
+html[data-theme="light"] .button.primary:hover{
+  background:var(--day-accent-dark);color:#fff;
+}
+html[data-theme="light"] .button.ghost{
+  background:#fff;
+  border:1px solid #bed1c0;
+  color:#2e5940;
+}
+html[data-theme="light"] .button.ghost:hover{
+  background:#edf5ed;border-color:#95b69a;
+}
+html[data-theme="light"] .github-mark.brand-icon,
+html[data-theme="light"] .github-icon-slot .github-mark{filter:none}
+
+/* Modworks is intentionally a dark featured banner, not a washed out
+   pale block competing with its own full-colour artwork. */
+html[data-theme="light"] .modworks-entry-card{
+  background:linear-gradient(125deg,#183126,#162820 58%,#1d2f26);
+  border-color:#41664e;
+  color:#f1f8ef;
+  box-shadow:0 22px 54px rgba(35,67,45,.19);
+}
+html[data-theme="light"] .modworks-entry-card:hover{
+  border-color:#75a575;
+  box-shadow:0 27px 68px rgba(35,75,43,.23);
+}
+html[data-theme="light"] .modworks-entry-name{color:#f5f9f4}
+html[data-theme="light"] .modworks-entry-name span{color:#b7e98a}
+html[data-theme="light"] .modworks-entry-description{color:#c2d4c5}
+html[data-theme="light"] .modworks-entry-card .modworks-entry-kicker{color:#b8e88e}
+html[data-theme="light"] .modworks-entry-spark{background:#b9e88d;box-shadow:0 0 12px #b9e88d65}
+html[data-theme="light"] .modworks-entry-art{background:#12221b}
+html[data-theme="light"] .modworks-entry-art::after{
+  background:linear-gradient(90deg,#162820 0%,rgba(22,40,32,.30) 40%,transparent 78%);
+}
+html[data-theme="light"] .modworks-entry-button{
+  background:#c0ef91;color:#1c3523;border-color:#a9d67c;
+}
+html[data-theme="light"] .modworks-entry-card:hover .modworks-entry-button{
+  background:#d0f6a6;
+}
+@media(max-width:780px){
+  html[data-theme="light"] .modworks-entry-art::after{
+    background:linear-gradient(180deg,#162820 0%,rgba(22,40,32,0) 38%);
+  }
+}
+
+/* CTA repeats the dark-feature visual vocabulary used by Modworks and
+   the terminal, intentionally anchoring the bottom of the bright page. */
+html[data-theme="light"] .cta{
+  background:linear-gradient(130deg,#1c3226 0%,#16291e 65%,#213626);
+  color:#eef8eb;
+  border-color:#44654c;
+  box-shadow:0 24px 65px rgba(30,63,40,.19);
+}
+html[data-theme="light"] .cta::before{
+  background:linear-gradient(90deg,rgba(174,222,134,.075),transparent 55%);
+}
+html[data-theme="light"] .cta .eyebrow{color:#b7e28a}
+html[data-theme="light"] .cta h2{color:#f6faf5}
+html[data-theme="light"] .cta h2 span{color:#b7e68a}
+html[data-theme="light"] .cta-copy>p:last-child{color:#c3d4c6}
+html[data-theme="light"] .cta .cta-glow{
+  background:radial-gradient(circle,rgba(166,221,132,.18),transparent 70%);
+}
+html[data-theme="light"] .cta .button.primary{
+  background:#c0ec90;color:#1c3523;
+  box-shadow:none;
+}
+html[data-theme="light"] .cta .button.primary:hover{
+  background:#d3f4ae;color:#172f1d;
+}
+html[data-theme="light"] .cta .button.ghost,
+html[data-theme="light"] .cta-actions .button.ghost{
+  background:rgba(255,255,255,.06);
+  color:#eff8eb;
+  border-color:#718d76;
+}
+html[data-theme="light"] .cta .button.ghost:hover{
+  background:rgba(255,255,255,.13);
+  border-color:#b0c9ae;
+}
+
+/* Support block stays light and feels connected to the white cards. */
+html[data-theme="light"] .support-card{
+  background:linear-gradient(130deg,#fff 0%,#f3f8f0 100%);
+  border-color:#c2d6c2;
+  color:var(--day-ink);
+  box-shadow:0 18px 48px rgba(34,68,41,.12);
+}
+html[data-theme="light"] .support-card::before{
+  background:radial-gradient(circle at 12% 50%,rgba(112,172,111,.12),transparent 59%);
+}
+html[data-theme="light"] .support-icon{
+  color:#316f48;
+  background:#e9f4e8;
+  border-color:#b8d4ba;
+  box-shadow:0 5px 18px rgba(52,92,53,.08);
+}
+html[data-theme="light"] .support-copy h3{color:#20392b}
+html[data-theme="light"] .support-copy p{color:#546958}
+html[data-theme="light"] .support-button{
+  background:var(--day-accent);border-color:var(--day-accent);
+  color:#fff;box-shadow:0 6px 18px rgba(33,102,59,.13);
+}
+html[data-theme="light"] .support-button:hover{
+  background:var(--day-accent-dark);
+  color:#fff;box-shadow:0 10px 24px rgba(30,92,51,.19);
+}
+
+/* Dialog: white metadata on the right; a deep, neutral media stage on
+   the left. Dark screenshots remain visible rather than being washed out. */
+html[data-theme="light"] .project-modal-backdrop{
+  background:rgba(23,42,31,.56);
+  backdrop-filter:blur(12px);
+}
+html[data-theme="light"] #project-modal .project-dialog{
+  background:#fff;
+  border-color:#cbd9cd;
+  color:var(--day-ink);
+  box-shadow:0 33px 100px rgba(15,38,25,.26);
+}
+html[data-theme="light"] .modal-content{
+  background:linear-gradient(180deg,#fff 0%,#f9fbf8 100%);
+  color:var(--day-ink);
+}
+html[data-theme="light"] .modal-content h2{color:#1d3225}
+html[data-theme="light"] .modal-description{color:#4e6455}
+html[data-theme="light"] .modal-gallery{
+  background:#12211b;
+  border-color:#35493d;
+}
+html[data-theme="light"] .gallery-stage{
+  background:radial-gradient(ellipse at 50% 46%,rgba(99,152,104,.14),transparent 62%),#14241d;
+}
+html[data-theme="light"] .gallery-stage::before{opacity:.17;filter:blur(33px) saturate(.8)}
+html[data-theme="light"] .gallery-stage::after{
+  background:linear-gradient(180deg,rgba(10,22,15,.26),rgba(10,22,15,.34)),
+    radial-gradient(circle at center,transparent 12%,rgba(9,19,13,.14) 89%);
+}
+html[data-theme="light"] .gallery-stage>img{
+  background:#101c16;
+  border-color:rgba(230,247,228,.17);
+  box-shadow:0 22px 56px rgba(0,0,0,.35);
+}
+html[data-theme="light"] .gallery-loading{
+  background:rgba(18,35,26,.83);
+  color:#e1eae1;
+}
+html[data-theme="light"] .gallery-footer{
+  background:linear-gradient(180deg,#1b2d24,#16251e);
+  border-top-color:#395043;
+  color:#cfdece;
+}
+html[data-theme="light"] .gallery-dot{background:#64766b}
+html[data-theme="light"] .gallery-dot:hover{background:#9cb59c}
+html[data-theme="light"] .gallery-dot.active{
+  background:#b6e77f;
+  box-shadow:0 0 12px rgba(174,224,121,.23);
+}
+html[data-theme="light"] #gallery-count{
+  color:#d7e4d5;background:#23382b;border-color:#4c6951;
+}
+html[data-theme="light"] .gallery-nav{
+  background:rgba(19,40,29,.88);
+  color:#eef9eb;
+  border-color:#5c7b63;
+  box-shadow:0 6px 19px rgba(0,0,0,.26);
+}
+html[data-theme="light"] .gallery-nav:hover{
+  background:rgba(42,81,52,.96);
+  color:#fff;border-color:#9bbb9f;
+}
+html[data-theme="light"] .modal-close{
+  background:rgba(255,255,255,.97);
+  border-color:#c1d5c3;
+  color:#315942;
+  box-shadow:0 5px 18px rgba(27,54,35,.12);
+}
+html[data-theme="light"] .modal-close:hover{
+  background:#e9f4e9;border-color:#8eb697;color:#1f6437;
+}
+html[data-theme="light"] .modal-facts{
+  border-top-color:#d5e1d5;border-left-color:#d5e1d5;
+}
+html[data-theme="light"] .modal-facts div{
+  border-right-color:#d5e1d5;border-bottom-color:#d5e1d5;
+}
+html[data-theme="light"] .modal-facts dt{color:#5a7061}
+html[data-theme="light"] .modal-facts dd{color:#203c2a}
+html[data-theme="light"] #project-modal .modal-actions .button.ghost{
+  background:#f6faf4;border-color:#c4d6c4;color:#2b6140;
+}
+html[data-theme="light"] #project-modal .modal-actions .button.ghost:hover{
+  background:#e6f1e6;border-color:#8fb397;
+}
+
+/* Floating appearance controls remain legible over either day surfaces or
+   the holiday blizzard, with independent and discoverable button states. */
+html[data-theme="light"] body > #appearance-controls{
+  background:rgba(255,255,255,.96);
+  border-color:#c2d5c3;
+  box-shadow:0 12px 34px rgba(38,74,46,.16);
+}
+html[data-theme="light"] .appearance-control{
+  background:#f1f6ef;
+  color:#365c43;
+  border-color:#d0dfd0;
+}
+html[data-theme="light"] .appearance-control:hover{
+  background:#e3f1e3;color:#24623a;
+}
+html[data-theme="light"] .appearance-control[aria-pressed="true"]{
+  background:#d9eedd;color:#226139;border-color:#9bbfa3;
+}
+html[data-theme="light"] body > #appearance-controls .holiday-settings{
+  background:rgba(255,255,255,.98);
+  border-color:#c8dac9;
+  box-shadow:0 15px 40px rgba(31,64,39,.16);
+}
+html[data-theme="light"] .holiday-setting{
+  background:#f4f8f2;
+  color:#365745;
+  border-color:#d2e0d2;
+}
+html[data-theme="light"] .holiday-setting:hover{background:#e9f3e8}
+html[data-theme="light"] .holiday-setting[aria-pressed="true"]{
+  color:#225b37;border-color:#8dbb95;
+}
+html[data-theme="light"] .holiday-setting[aria-pressed="false"]{
+  color:#55675a;opacity:1;
+}
+html[data-theme="light"] .holiday-setting-state{color:#276e44}
+html[data-theme="light"] .holiday-setting[aria-pressed="false"] .holiday-setting-state{color:#6b7c6d}
+html[data-theme="light"] .appearance-control:focus-visible,
+html[data-theme="light"] .holiday-setting:focus-visible{
+  outline:2px solid #297647;
+  outline-offset:3px;
+}
+
+/* Paired with existing seasonal layers: keep snowfall visible against the
+   pale canvas, but do not change its depth or wind animation. */
+html[data-theme="light"] #holiday-snow .holiday-fall{
+  filter:drop-shadow(0 1px 1px rgba(40,70,58,.5));
+}
+@media(max-width:600px){
+  html[data-theme="light"] .featured-card,
+  html[data-theme="light"] .project{box-shadow:0 9px 28px rgba(32,69,41,.08)}
+}
