@@ -13,6 +13,47 @@
   const HOLIDAY_KEY='portfolio-holiday-v1';
   const SNOW_KEY='portfolio-holiday-snow-v1';
   const CAPS_KEY='portfolio-holiday-caps-v1';
+  const SANTA_KEY='portfolio-santa-seen-v1';
+  let santaSeen=false;
+  try{santaSeen=sessionStorage.getItem(SANTA_KEY)==='yes';}catch{}
+  let santaFlight=null;
+  let santaCleanupTimer=0;
+  let santaPreload=null;
+  function preloadSanta(){
+    if(santaSeen||santaPreload||reducedMotion)return;
+    // Hover/focus loads the sprite without slowing initial page load.
+    santaPreload=new Image();
+    santaPreload.decoding='async';
+    santaPreload.src='santa.png';
+  }
+  function removeSanta(){
+    if(santaCleanupTimer){
+      clearTimeout(santaCleanupTimer);
+      santaCleanupTimer=0;
+    }
+    santaFlight?.remove();
+    santaFlight=null;
+  }
+  function launchSanta(){
+    if(santaSeen||reducedMotion)return;
+    santaSeen=true;
+    try{sessionStorage.setItem(SANTA_KEY,'yes');}catch{}
+    const flight=document.createElement('div');
+    flight.id='holiday-santa-flight';
+    flight.setAttribute('aria-hidden','true');
+    const image=document.createElement('img');
+    image.src='santa.png';
+    image.alt='';
+    image.decoding='async';
+    image.loading='eager';
+    image.draggable=false;
+    flight.appendChild(image);
+    document.body.appendChild(flight);
+    santaFlight=flight;
+    image.addEventListener('animationend',removeSanta,{once:true});
+    image.addEventListener('error',removeSanta,{once:true});
+    santaCleanupTimer=setTimeout(removeSanta,3300);
+  }
   const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true;
   let desiredHoliday=root.dataset.holiday==='on';
   let transitionCounter=0;
@@ -325,6 +366,7 @@
     if(transitionTimer){clearTimeout(transitionTimer);transitionTimer=0;}
     burst?.remove();
     burst=null;
+    removeSanta();
     root.classList.remove('holiday-entering','holiday-exiting');
     if(reducedMotion||typeof window.PortfolioWeatherFront?.start!=='function'){
       endBurst(token);
@@ -334,15 +376,20 @@
     const x=rect.left+rect.width/2,y=rect.top+rect.height/2;
     root.classList.add(kind==='cold'?'holiday-entering':'holiday-exiting');
     stageDecorDelays();
+    const showSanta=kind==='cold'&&!santaSeen;
     burst=window.PortfolioWeatherFront.start({
-      kind,x,y,onDone:()=>endBurst(token)
+      kind,x,y,
+      duration:showSanta?3050:undefined,
+      onDone:()=>endBurst(token)
     });
     if(!burst){
       endBurst(token);
       return;
     }
-    // Failsafe only; animation normally completes and destroys its canvas.
-    transitionTimer=setTimeout(()=>endBurst(token),kind==='cold'?2450:1850);
+    if(showSanta)launchSanta();
+    // Failsafe only; the renderer normally destroys its canvas first.
+    transitionTimer=setTimeout(()=>endBurst(token),
+      kind==='cold'?(showSanta?3460:2450):1850);
   }
   function applyHoliday(enabled,animated=false){
     desiredHoliday=enabled;
@@ -363,6 +410,8 @@
   }
   themeButton.addEventListener('click',()=>applyTheme(root.dataset.theme==='light'?'dark':'light'));
   holidayButton.addEventListener('click',()=>applyHoliday(!desiredHoliday,true));
+  holidayButton.addEventListener('pointerenter',preloadSanta,{passive:true});
+  holidayButton.addEventListener('focus',preloadSanta);
   snowfallButton.addEventListener('click',()=>setSnowfall(root.dataset.holidaySnow==='off'));
   snowcapsButton.addEventListener('click',()=>setCaps(root.dataset.holidayCaps==='off'));
   applyTheme(root.dataset.theme);

@@ -52,7 +52,7 @@
     };
   }
 
-  function start({kind='cold',x,y,onDone}={}){
+  function start({kind='cold',x,y,onDone,duration:requestedDuration}={}){
     current?.remove();
     const cold=kind!=='warm';
     const canvas=document.createElement('canvas');
@@ -63,7 +63,8 @@
     const ctx=canvas.getContext('2d',{alpha:true,desynchronized:true});
     if(!ctx){canvas.remove();return null;}
 
-    const duration=cold?2120:1550;
+    const duration=Number.isFinite(requestedDuration)
+      ?clamp(requestedDuration,1000,3500):(cold?2120:1550);
     const sprite=softSprite(cold?'cold':'warm');
     const cloud=mistSprite(cold?'cold':'warm');
     const state={

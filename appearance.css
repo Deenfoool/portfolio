@@ -492,3 +492,55 @@ html.holiday-exiting body > #holiday-snow{animation:holiday-snow-clear 1.2s ease
   html.holiday-exiting body > #holiday-snow{animation:none!important}
   #holiday-settings{animation:none!important}
 }
+
+
+/* First winter activation only: a tiny retro sleigh crosses the upper sky.
+   A CSS transform keeps the sprite fully decoupled from scroll and JS loops. */
+body > #holiday-santa-flight{
+  position:fixed!important;
+  inset:0;
+  z-index:1550!important;
+  width:100vw;
+  height:100vh;
+  overflow:hidden;
+  pointer-events:none!important;
+  background:transparent;
+}
+#holiday-santa-flight img{
+  --santa-width:clamp(245px,28vw,460px);
+  position:absolute;
+  top:clamp(94px,16vh,180px);
+  left:0;
+  display:block;
+  width:var(--santa-width);
+  max-width:none;
+  height:auto;
+  image-rendering:pixelated;
+  pointer-events:none!important;
+  user-select:none;
+  filter:drop-shadow(0 0 8px rgba(220,244,255,.22));
+  will-change:transform;
+  transform-origin:center;
+  animation:holiday-santa-flight 2.4s cubic-bezier(.19,.39,.62,.79) .48s both;
+}
+@keyframes holiday-santa-flight{
+  0%{
+    transform:translate3d(calc(100vw + 60px),-12px,0) scaleX(-1);
+    opacity:0;
+  }
+  7%{opacity:.96}
+  86%{opacity:.96}
+  100%{
+    transform:translate3d(calc(-1 * var(--santa-width) - 60px),12px,0) scaleX(-1);
+    opacity:0;
+  }
+}
+@media(max-width:600px){
+  #holiday-santa-flight img{
+    --santa-width:clamp(165px,42vw,260px);
+    top:clamp(88px,15vh,145px);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  body > #holiday-santa-flight{display:none!important}
+}
