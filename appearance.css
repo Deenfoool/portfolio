@@ -190,7 +190,8 @@ body > #holiday-snow{
 body > #holiday-snow[hidden]{display:none!important}
 #holiday-snow .holiday-fall{
   position:absolute;
-  inset:-200px 0 0;
+  /* Extra horizontal room prevents gaps while the flakes drift in wind. */
+  inset:-200px -25vw 0;
   display:block;
   pointer-events:none;
   background-repeat:repeat;
@@ -217,8 +218,16 @@ body > #holiday-snow[hidden]{display:none!important}
     radial-gradient(circle at 149px 49px,rgba(255,255,255,.55) 0 1.1px,transparent 1.7px);
   animation:holiday-snow-far 16s linear infinite;
 }
-@keyframes holiday-snow-near{to{transform:translate3d(0,190px,0)}}
-@keyframes holiday-snow-far{to{transform:translate3d(0,154px,0)}}
+/* Skew the tiled sheet, then advance by exactly one tile height.
+   The path looks diagonal while the looping background stays seamless. */
+@keyframes holiday-snow-near{
+  from{transform:skewX(-9deg) translate3d(0,0,0)}
+  to{transform:skewX(-9deg) translate3d(0,190px,0)}
+}
+@keyframes holiday-snow-far{
+  from{transform:skewX(-6deg) translate3d(0,0,0)}
+  to{transform:skewX(-6deg) translate3d(0,154px,0)}
+}
 html[data-theme="light"] #holiday-snow .holiday-fall{
   filter:drop-shadow(0 1px 1px rgba(63,95,81,.5));
 }
@@ -243,11 +252,23 @@ body > #holiday-dialog-caps{z-index:1001}
 #holiday-page-caps > .holiday-cap,
 #holiday-dialog-caps > .holiday-cap{
   position:absolute;
+  left:0;
+  top:0;
   display:block;
   pointer-events:none!important;
-  /* Scale the scalloped white edge down to the card's top border. */
-  background:url("assets/snow-cap.svg") top center / 100% 145% no-repeat;
-  filter:drop-shadow(0 2px 3px rgba(133,191,218,.25));
+  will-change:transform;
+}
+/* The SVG's scalloped edge is now ABOVE the block, and its flat edge
+   rests on the block's top border. Keep inversion separate from position. */
+#holiday-page-caps > .holiday-cap::before,
+#holiday-dialog-caps > .holiday-cap::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:url("assets/snow-cap.svg") center / 100% 100% no-repeat;
+  transform:scaleY(-1);
+  filter:drop-shadow(0 -2px 3px rgba(133,191,218,.25));
+  pointer-events:none;
 }
 #holiday-page-caps > .holiday-cap[hidden],
 #holiday-dialog-caps > .holiday-cap[hidden]{display:none!important}

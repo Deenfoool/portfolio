@@ -38,6 +38,8 @@
   const capItems=new Map();
   const SNOWY_SELECTORS='.project.snowy-theme,.featured-card.snowy-theme,.project-dialog.snowy-theme';
   let capFrame=0;
+  let followUntil=0;
+  const cachedPositions=new WeakMap();
 
   const capHeight=el=>el.matches('.nav')?23:
     el.matches('.terminal-card')?24:
@@ -47,33 +49,64 @@
     el.matches('.modworks-entry-card')?31:
     el.matches('.about-content')?23:35;
 
-  function updateCaps(){
+  // Follow transforms while they animate, not just at the instant of a
+  // scroll/pointer event. Read all boxes first, then update GPU transforms
+  // so layout changes do not cascade through individual cards.
+  function updateCaps(now){
     capFrame=0;
+    const active=[];
+    const shouldShowHoliday=root.dataset.holiday==='on';
+    const viewportWidth=document.documentElement.clientWidth;
+    const viewportHeight=document.documentElement.clientHeight;
     for(const [host,cap] of capItems){
-      const needed=root.dataset.holiday==='on'||host.matches(SNOWY_SELECTORS);
+      const needed=shouldShowHoliday||host.matches(SNOWY_SELECTORS);
       if(!host.isConnected||!needed){
         cap.remove();
         capItems.delete(host);
         continue;
       }
-      // display:none ancestors (including a closed modal) have no rectangle.
       const rect=host.getBoundingClientRect();
-      const viewportWidth=document.documentElement.clientWidth;
-      const viewportHeight=document.documentElement.clientHeight;
       const visible=rect.width>0&&rect.height>0&&rect.bottom>0&&
         rect.top<viewportHeight&&rect.right>0&&rect.left<viewportWidth;
-      cap.hidden=!visible;
-      if(!visible)continue;
+      if(!visible){
+        if(!cap.hidden)cap.hidden=true;
+        continue;
+      }
+      // The cap is inverted: its straight lower edge sits on the block.
       const height=capHeight(host);
-      cap.style.left=rect.left+'px';
-      cap.style.top=(rect.top-height+4)+'px';
-      cap.style.width=rect.width+'px';
-      cap.style.height=height+'px';
+      active.push({
+        cap,
+        x:rect.left,
+        y:rect.top-height+2,
+        width:rect.width,
+        height
+      });
+    }
+    for(const box of active){
+      const cap=box.cap;
+      if(cap.hidden)cap.hidden=false;
+      const next=[box.x,box.y,box.width,box.height];
+      const prev=cachedPositions.get(cap);
+      if(prev&&prev.every((v,i)=>Math.abs(v-next[i])<0.06))continue;
+      cachedPositions.set(cap,next);
+      cap.style.width=box.width+'px';
+      cap.style.height=box.height+'px';
+      // Position via transform to track compositor-driven hover/scroll
+      // motion without changing the document layout.
+      cap.style.transform='translate3d('+box.x+'px,'+box.y+'px,0)';
+    }
+    if(capItems.size && !document.hidden && now<followUntil){
+      capFrame=requestAnimationFrame(updateCaps);
     }
   }
   function scheduleCaps(){
-    if(capFrame)return;
+    if(capFrame||document.hidden)return;
     capFrame=requestAnimationFrame(updateCaps);
+  }
+  function followCaps(duration=650){
+    if(!capItems.size)return;
+    followUntil=Math.max(followUntil,performance.now()+duration);
+    scheduleCaps();
   }
   function capFor(host){
     if(capItems.has(host))return;
@@ -86,7 +119,7 @@
   function syncCaps(scope=document){
     if(root.dataset.holiday==='on')select(CAP_SELECTORS,scope).forEach(capFor);
     select(SNOWY_SELECTORS,scope).forEach(capFor);
-    scheduleCaps();
+    followCaps(700);
   }
 
   const persist=(key,value)=>{try{localStorage.setItem(key,value)}catch{}};
@@ -154,7 +187,7 @@
         if(node.nodeType===1)decorate(node);
       }
     }
-    scheduleCaps();
+    followCaps(700);
   });
   ['projects-grid','featured-grid'].forEach(id=>{
     const grid=document.getElementById(id);
@@ -165,10 +198,25 @@
   if(projectModal)observer.observe(projectModal,{attributes:true,attributeFilter:['hidden','class']});
   if(dialog){
     observer.observe(dialog,{attributes:true,attributeFilter:['class']});
-    dialog.addEventListener('transitionend',scheduleCaps);
+    dialog.addEventListener('transitionend',()=>followCaps(200));
   }
-  window.addEventListener('scroll',scheduleCaps,{passive:true});
-  window.addEventListener('resize',scheduleCaps,{passive:true});
-  window.addEventListener('orientationchange',scheduleCaps,{passive:true});
+  // Capture scrolling inside the dialog, too. Continuous short-lived RAF
+  // tracking is necessary for smooth scrolling and CSS hover transitions.
+  const trackScroll=()=>followCaps(450);
+  const trackPointer=()=>followCaps(450);
+  const trackTransition=()=>followCaps(750);
+  window.addEventListener('scroll',trackScroll,{passive:true,capture:true});
+  window.addEventListener('resize',()=>followCaps(750),{passive:true});
+  window.addEventListener('orientationchange',()=>followCaps(750),{passive:true});
+  document.addEventListener('pointermove',trackPointer,{passive:true,capture:true});
+  document.addEventListener('pointerover',trackTransition,{passive:true,capture:true});
+  document.addEventListener('pointerout',trackTransition,{passive:true,capture:true});
+  document.addEventListener('transitionrun',trackTransition,true);
+  document.addEventListener('transitionend',()=>followCaps(220),true);
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden)followCaps(700);
+  });
+  // Elements also shift when fonts, images or gallery content finish loading.
+  document.addEventListener('load',()=>followCaps(450),true);
   decorate();
 })();

@@ -35,7 +35,7 @@
 .snowy-theme > .snowfall::after{
   content:"";
   position:absolute;
-  inset:-240px 0 0;
+  inset:-240px -140px 0;
   display:block;
   pointer-events:none;
   background-repeat:repeat;
@@ -69,12 +69,12 @@
   animation:snowy-fall-far 14s linear infinite;
 }
 @keyframes snowy-fall-near{
-  from{transform:translate3d(0,0,0)}
-  to{transform:translate3d(0,192px,0)}
+  from{transform:skewX(-9deg) translate3d(0,0,0)}
+  to{transform:skewX(-9deg) translate3d(0,192px,0)}
 }
 @keyframes snowy-fall-far{
-  from{transform:translate3d(0,0,0)}
-  to{transform:translate3d(0,160px,0)}
+  from{transform:skewX(-6deg) translate3d(0,0,0)}
+  to{transform:skewX(-6deg) translate3d(0,160px,0)}
 }
 /* Keep the Featured marker and modal close controls unobstructed. */
 .featured-card.snowy-theme .featured-badge{z-index:18}
