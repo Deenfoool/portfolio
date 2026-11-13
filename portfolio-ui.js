@@ -16,6 +16,9 @@
   let gallery=[];
   let galleryIndex=0;
   let galleryRequest=0;
+  let modalOpenRequest=0;
+  let returnFocus=null;
+  const galleryCache=new Map();
 
   const esc=(v='')=>String(v).replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]));
   const rel=date=>{
@@ -112,43 +115,100 @@
     });
   }
 
+
+  // A cover is displayed as soon as it is ready. Gallery images are discovered
+  // in the background, rather than blocking the controls on 12 network requests.
   function galleryCandidates(r){
     const base=portfolioMediaBase(r);
-    return [
-      `${base}/cover.png`,
-      `${base}/cover.jpg`,
-      ...Array.from({length:10},(_,i)=>`${base}/gallery/${String(i+1).padStart(2,'0')}.png`)
-    ];
+    return Array.from({length:10},(_,i)=>`${base}/gallery/${String(i+1).padStart(2,'0')}.png`);
   }
 
-  const probe=url=>new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(url);img.onerror=()=>resolve(null);img.src=url;});
+  const probe=(url,timeout=5500)=>new Promise(resolve=>{
+    const img=new Image();
+    let settled=false;
+    const settle=value=>{
+      if(settled)return;
+      settled=true;
+      clearTimeout(timer);
+      img.onload=null;
+      img.onerror=null;
+      resolve(value);
+    };
+    const timer=setTimeout(()=>settle(null),timeout);
+    img.onload=()=>settle(url);
+    img.onerror=()=>settle(null);
+    img.src=url;
+  });
 
   function updateGallery(name='Project'){
-    const total=gallery.length||1;
-    if(gallery.length){galleryImage.src=gallery[galleryIndex];galleryImage.alt=`${name} — изображение ${galleryIndex+1}`;}
-    galleryPrev.hidden=total<=1; galleryNext.hidden=total<=1;
-    galleryCount.textContent=`${gallery.length?galleryIndex+1:1} / ${total}`;
-    galleryDots.innerHTML=gallery.map((_,i)=>`<button class="gallery-dot ${i===galleryIndex?'active':''}" type="button" data-gallery-index="${i}" aria-label="Изображение ${i+1}"></button>`).join('');
+    const total=gallery.length;
+    if(total){
+      const url=gallery[galleryIndex];
+      if(galleryImage.getAttribute('src')!==url) galleryImage.src=url;
+      galleryImage.alt=`${name} — изображение ${galleryIndex+1} из ${total}`;
+    }else{
+      galleryImage.removeAttribute('src');
+      galleryImage.alt='';
+    }
+    const hasMultiple=total>1;
+    galleryPrev.hidden=!hasMultiple;
+    galleryNext.hidden=!hasMultiple;
+    galleryPrev.disabled=!hasMultiple;
+    galleryNext.disabled=!hasMultiple;
+    galleryCount.textContent=`${total?galleryIndex+1:0} / ${total}`;
+    galleryDots.innerHTML=total>1
+      ?gallery.map((_,i)=>`<button class="gallery-dot ${i===galleryIndex?'active':''}" type="button" data-gallery-index="${i}" aria-label="Изображение ${i+1} из ${total}" aria-current="${i===galleryIndex?'true':'false'}"></button>`).join('')
+      :'';
   }
 
   function setGallery(i){
-    if(!gallery.length)return;
+    if(!modal||modal.hidden||gallery.length<2)return;
     galleryIndex=(i+gallery.length)%gallery.length;
     updateGallery(document.querySelector('#modal-title')?.textContent||'Project');
   }
 
   async function loadGallery(r){
     const id=++galleryRequest;
+    const cacheKey=r.name.toLowerCase();
     gallery=[];
     galleryIndex=0;
-    galleryImage.removeAttribute('src');
     galleryLoading.hidden=false;
     updateGallery(r.name);
-    const found=(await Promise.all(galleryCandidates(r).map(probe))).filter(Boolean);
-    if(id!==galleryRequest)return;
-    gallery=found.length?found:[cover(r).fallback];
-    galleryLoading.hidden=true;
-    updateGallery(r.name);
+
+    const cached=galleryCache.get(cacheKey);
+    if(cached?.length){
+      gallery=cached.slice();
+      galleryLoading.hidden=true;
+      updateGallery(r.name);
+      return;
+    }
+
+    const current=()=>id===galleryRequest && !modal.hidden;
+    const images=cover(r);
+    const discovered=new Array(10).fill(null);
+    let primary=null;
+
+    // The image that is being viewed stays selected if another image is found.
+    const refresh=()=>{
+      if(!current()||!primary)return;
+      const selected=gallery[galleryIndex];
+      gallery=[primary,...discovered.filter(Boolean)];
+      galleryIndex=Math.max(0,gallery.indexOf(selected));
+      galleryLoading.hidden=true;
+      updateGallery(r.name);
+    };
+
+    // Start the extra images now, but reveal the first cover immediately.
+    const extra=galleryCandidates(r).map(async(url,index)=>{
+      discovered[index]=await probe(url);
+      refresh();
+    });
+    primary=await probe(images.custom) || await probe(images.alternate) || images.fallback;
+    if(!current())return;
+    refresh();
+    await Promise.all(extra);
+    if(!current())return;
+    galleryCache.set(cacheKey,gallery.slice());
   }
 
   async function ensureRepo(name){
@@ -176,8 +236,10 @@
   }
 
   async function openModal(name){
+    const openRequest=++modalOpenRequest;
+    const invoker=document.activeElement;
     const r=await ensureRepo(name);
-    if(!r)return;
+    if(openRequest!==modalOpenRequest||!r)return;
     const tags=visibleTopics(r);
     document.querySelector('#modal-title').textContent=r.name;
     document.querySelector('#modal-description').textContent=r.description||'Описание проекта пока не добавлено в GitHub. Можно перейти в репозиторий или открыть живую версию проекта.';
@@ -185,44 +247,82 @@
     document.querySelector('#modal-updated').textContent=rel(r.updated_at);
     document.querySelector('#modal-stars').textContent=String(r.stargazers_count||0);
     document.querySelector('#modal-topics').innerHTML=tags.length?tags.map(t=>'<span>'+esc(t)+'</span>').join(''):'<span>GitHub project</span>';
+    if(modal.hidden) returnFocus=invoker;
     modal.dataset.projectName=r.name;
     renderModalActions(r);
     modal.hidden=false;
     document.body.classList.add('modal-open');
-    requestAnimationFrame(()=>modal.classList.add('open'));
+    requestAnimationFrame(()=>{ if(openRequest===modalOpenRequest&&!modal.hidden)modal.classList.add('open'); });
     document.querySelector('.modal-close')?.focus({preventScroll:true});
     loadGallery(r);
     void Releases?.check(r);
   }
 
   function closeModal(){
+    ++modalOpenRequest;
     if(!modal||modal.hidden)return;
-    galleryRequest++;
+    ++galleryRequest; // Ignore any pending image probes for the closed card.
     modal.classList.remove('open');
+    modal.hidden=true; // Immediate hit-testing/focus reset; no stale animation timer.
+    modal.removeAttribute('data-project-name');
+    galleryLoading.hidden=true;
     document.body.classList.remove('modal-open');
-    setTimeout(()=>{if(!modal.classList.contains('open'))modal.hidden=true;},180);
+    const target=returnFocus;
+    returnFocus=null;
+    if(target?.isConnected && typeof target.focus==='function') target.focus({preventScroll:true});
   }
 
   document.addEventListener('click',e=>{
     const detail=e.target.closest('[data-project-detail]');
-    if(detail){e.preventDefault();openModal(detail.dataset.projectDetail);return;}
+    if(detail){e.preventDefault();void openModal(detail.dataset.projectDetail);return;}
 
     const card=e.target.closest('#projects-grid .project');
     const coverLink=e.target.closest('#projects-grid .project-cover, #projects-grid .project-title-link');
-    if(card&&coverLink){e.preventDefault();openModal(card.dataset.projectName||repoFromHref(coverLink.href));return;}
-
-    if(e.target.closest('[data-modal-close]')){closeModal();return;}
-    const dot=e.target.closest('[data-gallery-index]');
-    if(dot)setGallery(Number(dot.dataset.galleryIndex));
+    if(card&&coverLink){e.preventDefault();void openModal(card.dataset.projectName||repoFromHref(coverLink.href));}
   });
 
-  galleryPrev?.addEventListener('click',()=>setGallery(galleryIndex-1));
-  galleryNext?.addEventListener('click',()=>setGallery(galleryIndex+1));
+  // Modal controls are handled on the modal, independently of project card links.
+  modal?.addEventListener('click',e=>{
+    if(e.target.closest('[data-modal-close]')){
+      e.preventDefault();
+      closeModal();
+      return;
+    }
+    if(e.target.closest('#gallery-prev')){
+      e.preventDefault();
+      setGallery(galleryIndex-1);
+      return;
+    }
+    if(e.target.closest('#gallery-next')){
+      e.preventDefault();
+      setGallery(galleryIndex+1);
+      return;
+    }
+    const dot=e.target.closest('[data-gallery-index]');
+    if(dot){
+      e.preventDefault();
+      setGallery(Number(dot.dataset.galleryIndex));
+    }
+  });
+
   document.addEventListener('keydown',e=>{
     if(!modal||modal.hidden)return;
-    if(e.key==='Escape')closeModal();
-    if(e.key==='ArrowLeft')setGallery(galleryIndex-1);
-    if(e.key==='ArrowRight')setGallery(galleryIndex+1);
+    if(e.key==='Escape'){
+      e.preventDefault();
+      closeModal();
+    }else if((e.key==='ArrowLeft'||e.key==='ArrowRight') && !e.altKey&&!e.ctrlKey&&!e.metaKey){
+      e.preventDefault();
+      setGallery(galleryIndex+(e.key==='ArrowLeft'?-1:1));
+    }else if(e.key==='Tab'){
+      // Keep keyboard focus inside the open project dialog.
+      const dialog=modal.querySelector('.project-dialog');
+      const controls=[...dialog.querySelectorAll('a[href],button:not([disabled]):not([hidden])')]
+        .filter(el=>el.getClientRects().length);
+      if(!controls.length)return;
+      const first=controls[0],last=controls[controls.length-1];
+      if(e.shiftKey && document.activeElement===first){e.preventDefault();last.focus();}
+      else if(!e.shiftKey && document.activeElement===last){e.preventDefault();first.focus();}
+    }
   });
 
   if(projectsGrid){

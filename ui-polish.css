@@ -40,3 +40,6 @@
 .filter-icon-mono{filter:invert(1)}
 .filter>span{display:inline-block;white-space:nowrap}
 .github-mark.brand-icon{display:block;width:19px;height:19px;object-fit:contain;filter:invert(1)}
+
+/* Image arrows must stay hidden when a project has only one image. */
+#project-modal .gallery-nav[hidden]{display:none!important}
