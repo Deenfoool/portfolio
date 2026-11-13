@@ -225,20 +225,38 @@ html[data-theme="light"] #holiday-snow .holiday-fall{
 .holiday-host{position:relative}
 /* The project dialog must remain absolutely centered in the viewport. */
 .project-dialog.holiday-host{position:absolute}
-.holiday-host > .holiday-cap,
+/* The standalone Snowy New Year dialog also keeps its centered position. */
+.project-dialog.snowy-theme{position:absolute}
+/* Caps float in a fixed overlay rather than inside clipped cards. */
+body > #holiday-page-caps,
+body > #holiday-dialog-caps{
+  position:fixed!important;
+  inset:0;
+  width:100vw;
+  height:100vh;
+  display:block;
+  pointer-events:none!important;
+  overflow:visible;
+}
+body > #holiday-page-caps{z-index:38}
+body > #holiday-dialog-caps{z-index:1001}
+#holiday-page-caps > .holiday-cap,
+#holiday-dialog-caps > .holiday-cap{
+  position:absolute;
+  display:block;
+  pointer-events:none!important;
+  /* Scale the scalloped white edge down to the card's top border. */
+  background:url("assets/snow-cap.svg") top center / 100% 145% no-repeat;
+  filter:drop-shadow(0 2px 3px rgba(133,191,218,.25));
+}
+#holiday-page-caps > .holiday-cap[hidden],
+#holiday-dialog-caps > .holiday-cap[hidden]{display:none!important}
 .holiday-host > .holiday-garland{
   position:absolute;
   left:0;
   right:0;
   display:block;
   pointer-events:none!important;
-}
-.holiday-host > .holiday-cap{
-  top:0;
-  height:35px;
-  z-index:13;
-  background:url("assets/snow-cap.svg") top center / 100% 100% no-repeat;
-  filter:drop-shadow(0 2px 3px rgba(133,191,218,.25));
 }
 .holiday-host > .holiday-garland{
   bottom:-13px;
@@ -252,25 +270,17 @@ html[data-theme="light"] #holiday-snow .holiday-fall{
   from{filter:brightness(.86) drop-shadow(0 0 3px rgba(219,241,164,.12))}
   to{filter:brightness(1.2) drop-shadow(0 0 5px rgba(254,223,148,.5))}
 }
-.nav.holiday-host > .holiday-cap{height:23px;top:0}
 .nav.holiday-host > .holiday-garland{bottom:-20px}
-.terminal-card.holiday-host > .holiday-cap{height:24px}
-.stats.holiday-host > .holiday-cap{height:22px}
-.project.holiday-host > .holiday-cap,
-.featured-card.holiday-host > .holiday-cap{height:27px}
-.project-dialog.holiday-host > .holiday-cap{height:25px;z-index:17}
 .project-dialog.holiday-host > .holiday-garland{z-index:18}
-.modworks-entry-card.holiday-host > .holiday-cap{height:31px}
 .section-heading.holiday-host > .holiday-garland{bottom:-35px;height:27px;background-size:440px 27px}
-.about-content.holiday-host > .holiday-cap{height:23px}
 .support-card.holiday-host > .holiday-garland{bottom:-9px}
-html[data-holiday="on"] .project.snowy-theme::before,
-html[data-holiday="on"] .featured-card.snowy-theme::before,
-html[data-holiday="on"] .project-dialog.snowy-theme::before{display:none}
+/* The same exterior cap placement is used for Snowy New Year on its own. */
+html .project.snowy-theme::before,
+html .featured-card.snowy-theme::before,
+html .project-dialog.snowy-theme::before{display:none!important}
 @media(max-width:650px){
   #holiday-snow .holiday-fall-near{opacity:.7}
   #holiday-snow .holiday-fall-far{opacity:.55}
-  .holiday-host > .holiday-cap{height:26px}
   .holiday-host > .holiday-garland{height:27px;background-size:440px 27px}
 }
 @media(prefers-reduced-motion:reduce){
