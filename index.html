@@ -16,6 +16,15 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#09090b">
+  <script>
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem('portfolio-theme-v1') === 'light' ? 'light' : 'dark';
+      document.documentElement.dataset.holiday = localStorage.getItem('portfolio-holiday-v1') === 'on' ? 'on' : 'off';
+    } catch {
+      document.documentElement.dataset.theme = 'dark';
+      document.documentElement.dataset.holiday = 'off';
+    }
+  </script>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="shortcut icon" href="favicon.svg">
   <title>DeenFoool — приложения, веб-инструменты и игры</title>
@@ -30,11 +39,16 @@
   <link rel="stylesheet" href="motion.css?v=2">
   <link rel="stylesheet" href="modworks-entry.css?v=3">
   <link rel="stylesheet" href="snowy-effects.css?v=1">
+  <link rel="stylesheet" href="appearance.css?v=1">
   <style>#gallery-loading[hidden]{display:none!important}</style>
 </head>
 <body>
   <canvas id="grid-bg" aria-hidden="true"></canvas>
   <div class="noise"></div>
+  <div id="appearance-controls" class="appearance-controls" role="group" aria-label="Оформление портфолио">
+    <button id="theme-toggle" class="appearance-control" type="button" aria-label="Включить светлую тему" aria-pressed="false" title="Переключить день / ночь"><svg class="appearance-icon appearance-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg><svg class="appearance-icon appearance-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 15.8A9 9 0 0 1 8.2 3.2 9 9 0 1 0 20.8 15.8Z"/></svg></button>
+    <button id="holiday-toggle" class="appearance-control" type="button" aria-label="Включить новогоднюю тему" aria-pressed="false" title="Включить / выключить новогоднюю тему"><svg class="appearance-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v20M4.93 4.93l14.14 14.14M2 12h20M4.93 19.07 19.07 4.93M9 5l3 3 3-3M9 19l3-3 3 3M5 9l3 3-3 3M19 9l-3 3 3 3"/></svg></button>
+  </div>
   <header class="nav">
     <a class="brand" href="#top" aria-label="Deenfoool home"><span class="brand-dot"></span>deenfoool</a>
     <nav>
@@ -196,5 +210,6 @@
   <script src="portfolio-ui.js?v=12"></script>
   <script src="ui-polish.js?v=8"></script>
   <script src="motion.js?v=2"></script>
+  <script src="appearance.js?v=1"></script>
 </body>
 </html>
