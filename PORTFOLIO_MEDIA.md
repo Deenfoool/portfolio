@@ -5,7 +5,7 @@
 ```text
 repo/
 └── portfolio/
-    ├── cover.png
+    ├── cover.png (или cover.jpg)
     └── gallery/
         ├── 01.png
         ├── 02.png
@@ -16,7 +16,7 @@ repo/
 
 ### Форматы и рекомендации
 
-- Обложка: `portfolio/cover.png` (PNG, желательно 16:9, например 1200 × 675).
+- Обложка: `portfolio/cover.png` **или** `portfolio/cover.jpg` (предпочтительно 16:9, например 1200 × 675). Если есть оба файла, используется PNG; если нет — JPG; если нет обоих — GitHub Open Graph.
 - Галерея: `portfolio/gallery/01.png` ... `portfolio/gallery/10.png`, необязательно.
 - Подпись карточки: описание репозитория в настройках GitHub.
 - Технологии: язык и topics репозитория.
@@ -26,6 +26,6 @@ repo/
 
 - `script.js → repoImage(repo)` для основной сетки.
 - `portfolio-ui.js → portfolioMediaBase(repo), cover(repo), galleryCandidates(repo)` для избранных, модального окна и галереи.
-- `index.html`: начальная разметка, показываемая до загрузки GitHub API. Она использует те же URL `portfolio/cover.png` с резервной заставкой GitHub.
+- `index.html`: начальная разметка, показываемая до загрузки GitHub API. Она использует тот же порядок: `portfolio/cover.png` → `portfolio/cover.jpg` → резервная заставка GitHub.
 
 Если меняется стандарт путей, его необходимо менять в этих местах вместе. Не добавляйте обложки отдельных проектов обратно в `portfolio/media/`.
