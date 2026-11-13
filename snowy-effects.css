@@ -6,20 +6,6 @@
   position:relative;
   isolation:isolate;
 }
-.project.snowy-theme::before,
-.featured-card.snowy-theme::before,
-.project-dialog.snowy-theme::before{
-  content:"";
-  position:absolute;
-  top:0;
-  left:0;
-  width:100%;
-  height:43px;
-  z-index:16;
-  pointer-events:none;
-  background:url("assets/snow-cap.svg") top center / 100% 100% no-repeat;
-  filter:drop-shadow(0 3px 4px rgba(160,214,241,.25));
-}
 .project-dialog:not(.snowy-theme) > .snowfall {display:none}
 .snowy-theme > .snowfall{
   position:absolute;
@@ -82,9 +68,6 @@
 @media(max-width:650px){
   .snowy-theme > .snowfall::before{opacity:.65}
   .snowy-theme > .snowfall::after{opacity:.5}
-  .project.snowy-theme::before,
-  .featured-card.snowy-theme::before,
-  .project-dialog.snowy-theme::before{height:34px}
 }
 @media(prefers-reduced-motion:reduce){
   .snowy-theme > .snowfall::before,

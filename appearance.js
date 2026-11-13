@@ -35,13 +35,9 @@
 
   // Only the dialog has to keep its overflow/scroll box. Other snow caps
   // are children of their cards, inheriting CSS hover and scroll transforms.
-  const dialogCaps=document.createElement('div');
-  dialogCaps.id='holiday-dialog-caps';
-  dialogCaps.setAttribute('aria-hidden','true');
-  document.body.appendChild(dialogCaps);
-
+  // The dialog has its own unclipped frame; caps for every block now
+  // belong to the same moving DOM subtree as their host.
   const caps=new Map();
-  let capSequence=0;
   const SVG_NS='http://www.w3.org/2000/svg';
   const hashSeed=text=>{
     let hash=2166136261;
@@ -55,18 +51,25 @@
       return (x>>>0)/4294967296;
     };
   };
+
   const heightFor=(host,rand)=>{
     const base=host.matches('.nav,.stats')?15:
       host.matches('.project,.featured-card')?19:
-      host.matches('.project-dialog')?19:
-      host.matches('.modworks-entry-card,.cta,.support-card')?22:18;
-    return base+Math.round((rand()-.5)*6);
+      host.matches('.project-dialog')?18:
+      host.matches('.modworks-entry-card,.cta,.support-card')?21:17;
+    return base+Math.round((rand()-.5)*4);
+  };
+  const capKey=host=>{
+    const kind=CAP_SELECTORS.split(',').find(sel=>host.matches(sel))||host.tagName.toLowerCase();
+    const project=host.dataset.projectName||
+      host.querySelector?.('[data-project-detail]')?.dataset.projectDetail||
+      host.closest?.('[data-project-name]')?.dataset.projectName||'';
+    return kind+':'+project;
   };
   function createCap(host){
-    const name=host.dataset.projectName||
-      host.querySelector?.('[data-project-detail]')?.dataset.projectDetail||
-      host.className||host.tagName;
-    const rand=randomFrom(hashSeed(String(name)+':'+(++capSequence)));
+    // A stable hash means each project keeps its own varied shape across
+    // refreshes, filtering and toggling the holiday decorations.
+    const rand=randomFrom(hashSeed(capKey(host)));
     const cap=document.createElementNS(SVG_NS,'svg');
     cap.classList.add('holiday-cap');
     cap.setAttribute('viewBox','0 0 1000 26');
@@ -75,35 +78,42 @@
     cap.setAttribute('focusable','false');
     cap.style.setProperty('--cap-height',heightFor(host,rand)+'px');
 
-    // Shallow corners, softly uneven drifts in the middle. Each host gets
-    // its own stable shape and thickness, rather than a repeated bitmap.
+    // Thin edges, two to four organically spaced drifts. Cap the maximum
+    // depth and fade small ripples away towards each rounded corner.
+    const drifts=Array.from({length:2+Math.floor(rand()*3)},()=>({
+      center:.13+rand()*.74,
+      spread:.07+rand()*.14,
+      amount:3+rand()*6
+    }));
+    const phase=rand()*Math.PI*2;
     const points=[];
-    const count=12;
+    const count=28;
     for(let i=0;i<=count;i++){
-      const edge=i===0||i===count;
-      points.push({x:1000*i/count,
-        y:edge?21+rand()*2:7+rand()*14});
+      const t=i/count;
+      const fade=Math.sin(Math.PI*t);
+      const uneven=drifts.reduce((sum,d)=>{
+        const x=(t-d.center)/d.spread;
+        return sum+d.amount*Math.exp(-.5*x*x);
+      },0);
+      const texture=(Math.sin(t*16+phase)*.55+Math.sin(t*31-phase)*.25)*fade;
+      const depth=Math.min(15,2.5+uneven+texture);
+      points.push({x:1000*t,y:26-depth});
     }
-    let outline='M 0 26 L '+points[0].x+' '+points[0].y;
-    for(let i=0;i<points.length-1;i++){
-      const prev=points[Math.max(0,i-1)];
+    const curve='M '+points[0].x+' '+points[0].y.toFixed(2);
+    let outline=curve;
+    for(let i=0;i<count;i++){
       const a=points[i],b=points[i+1];
-      const next=points[Math.min(points.length-1,i+2)];
-      const c1x=a.x+(b.x-prev.x)/6;
-      const c1y=a.y+(b.y-prev.y)/6;
-      const c2x=b.x-(next.x-a.x)/6;
-      const c2y=b.y-(next.y-a.y)/6;
-      outline+=' C '+c1x.toFixed(1)+' '+c1y.toFixed(1)+
-        ' '+c2x.toFixed(1)+' '+c2y.toFixed(1)+
-        ' '+b.x.toFixed(1)+' '+b.y.toFixed(1);
+      const prev=points[Math.max(0,i-1)],next=points[Math.min(count,i+2)];
+      const c1x=a.x+(b.x-prev.x)/6,c1y=a.y+(b.y-prev.y)/6;
+      const c2x=b.x-(next.x-a.x)/6,c2y=b.y-(next.y-a.y)/6;
+      outline+=' C '+c1x.toFixed(2)+' '+c1y.toFixed(2)+
+        ' '+c2x.toFixed(2)+' '+c2y.toFixed(2)+
+        ' '+b.x.toFixed(2)+' '+b.y.toFixed(2);
     }
-    outline+=' L 1000 26 Z';
-    const fill=document.createElementNS(SVG_NS,'path');
-    fill.setAttribute('d',outline);
-    fill.setAttribute('fill','#f8fcff');
-    fill.setAttribute('stroke','#e6f3fa');
-    fill.setAttribute('stroke-width','1.8');
-    cap.appendChild(fill);
+    const snow=document.createElementNS(SVG_NS,'path');
+    snow.setAttribute('d',outline+' L 1000 26 L 0 26 Z');
+    snow.setAttribute('fill','#f8fcff');
+    cap.appendChild(snow);
     return cap;
   }
   const wantsCap=host=>root.dataset.holiday==='on'||host.matches(SNOWY_SELECTORS);
@@ -111,7 +121,8 @@
     if(caps.has(host))return;
     const cap=createCap(host);
     host.classList.add('holiday-cap-host');
-    (host.matches('.project-dialog')?dialogCaps:host).appendChild(cap);
+    // Dialog caps are siblings of the clipped dialog inside its frame.
+    (host.matches('.project-dialog')?host.parentElement:host).appendChild(cap);
     caps.set(host,cap);
   }
   function pruneCaps(){
@@ -123,39 +134,12 @@
     }
   }
 
-  // The one exceptional cap follows the modal's entrance animation.
-  // Page cards need no position polling at all.
   const projectModal=document.getElementById('project-modal');
   const dialog=projectModal?.querySelector('.project-dialog');
-  let dialogFrame=0,dialogFollowUntil=0;
-  function positionDialogCap(now){
-    dialogFrame=0;
-    if(!dialog||!caps.has(dialog))return;
-    const cap=caps.get(dialog);
-    const box=dialog.getBoundingClientRect();
-    const height=parseFloat(cap.style.getPropertyValue('--cap-height'))||19;
-    const visible=!projectModal.hidden&&box.width>0&&box.height>0;
-    cap.hidden=!visible;
-    if(visible){
-      cap.style.width=box.width+'px';
-      cap.style.height=height+'px';
-      cap.style.transform='translate3d('+box.left+'px,'+(box.top-height+2)+'px,0)';
-    }
-    if(now<dialogFollowUntil&&!document.hidden){
-      dialogFrame=requestAnimationFrame(positionDialogCap);
-    }
-  }
-  function followDialog(ms=450){
-    if(!dialog||!caps.has(dialog)||document.hidden)return;
-    if(projectModal.hidden){caps.get(dialog).hidden=true;return;}
-    dialogFollowUntil=Math.max(dialogFollowUntil,performance.now()+ms);
-    if(!dialogFrame)dialogFrame=requestAnimationFrame(positionDialogCap);
-  }
   function syncCaps(scope=document){
     if(root.dataset.holiday==='on')select(CAP_SELECTORS,scope).forEach(ensureCap);
     select(SNOWY_SELECTORS,scope).forEach(ensureCap);
     pruneCaps();
-    followDialog();
   }
   function decorate(scope=document){
     if(root.dataset.holiday==='on'){
@@ -205,7 +189,6 @@
     for(const record of records){
       if(record.type==='attributes'){
         if(record.target===dialog)decorate(dialog);
-        else followDialog();
         continue;
       }
       for(const node of record.addedNodes){
@@ -219,12 +202,6 @@
     if(grid)observer.observe(grid,{childList:true});
   });
   if(projectModal)observer.observe(projectModal,{attributes:true,attributeFilter:['hidden','class']});
-  if(dialog){
-    observer.observe(dialog,{attributes:true,attributeFilter:['class']});
-    dialog.addEventListener('transitionrun',()=>followDialog(500));
-    dialog.addEventListener('transitionend',()=>followDialog(100));
-  }
-  window.addEventListener('resize',()=>followDialog(400),{passive:true});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)followDialog(500)});
+  if(dialog)observer.observe(dialog,{attributes:true,attributeFilter:['class']});
   decorate();
 })();

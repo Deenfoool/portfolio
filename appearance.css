@@ -233,54 +233,70 @@ html[data-theme="light"] #holiday-snow .holiday-fall{
 }
 .holiday-host{position:relative}
 /* The project dialog must remain absolutely centered in the viewport. */
-.project-dialog.holiday-host{position:absolute}
 /* The standalone Snowy New Year dialog also keeps its centered position. */
-.project-dialog.snowy-theme{position:absolute}
-/* Snow caps are DOM children, so transforms and scrolling are automatic.
-   No viewport geometry polling or delayed position syncing is required. */
-.holiday-cap-host:not(.project-dialog){overflow:visible!important}
+/* Unclipped edges, without allowing inner glow/art to leak past cards. */
+.project.holiday-cap-host,
+.featured-card.holiday-cap-host,
+.terminal-card.holiday-cap-host,
+.modworks-entry-card.holiday-cap-host,
+.cta.holiday-cap-host,
+.support-card.holiday-cap-host{overflow:visible!important}
 .holiday-cap-host{position:relative}
-.project-dialog.holiday-cap-host{position:absolute}
-.holiday-cap-host > .holiday-cap{
+.project.holiday-cap-host .project-image{border-radius:9px 9px 0 0;overflow:hidden}
+.featured-card.holiday-cap-host .featured-media{border-radius:13px 13px 0 0;overflow:hidden}
+.terminal-card.holiday-cap-host .terminal-top{border-radius:11px 11px 0 0}
+.modworks-entry-card.holiday-cap-host .modworks-entry-art{border-radius:0 19px 19px 0;overflow:hidden}
+/* These glows originally extended beyond the card and were clipped by it. */
+.cta.holiday-cap-host .cta-glow{
+  right:0;top:0;width:min(36%,330px);height:100%;filter:none;
+  background:radial-gradient(ellipse at top right,rgba(163,230,53,.12),transparent 70%);
+}
+.support-card.holiday-cap-host::before{
+  inset:0;width:100%;height:100%;border-radius:inherit;clip-path:none;
+  background:radial-gradient(ellipse at 10% 44%,rgba(163,230,53,.1),transparent 58%);
+}
+/* Snow SVGs track native CSS transforms, scroll and 3-D card tilt. */
+.holiday-cap-host > .holiday-cap,
+.project-dialog-frame > .holiday-cap{
   position:absolute;
   display:block;
-  left:0;
-  top:calc(2px - var(--cap-height,19px));
-  width:100%;
+  left:4px;
+  top:calc(1px - var(--cap-height,19px));
+  width:calc(100% - 8px);
   height:var(--cap-height,19px);
   overflow:visible;
   pointer-events:none!important;
   z-index:24;
-  filter:drop-shadow(0 2px 2px rgba(112,164,185,.25));
+  filter:drop-shadow(0 1px 2px rgba(111,158,181,.23));
 }
-/* Preserve rounded image corners despite opening the outer card's overflow. */
-.project.holiday-cap-host .project-image{border-radius:9px 9px 0 0}
-.featured-card.holiday-cap-host .featured-media{border-radius:13px 13px 0 0}
-.terminal-card.holiday-cap-host .terminal-top{border-radius:11px 11px 0 0}
-.modworks-entry-card.holiday-cap-host .modworks-entry-art{border-radius:0 19px 19px 0}
-.cta.holiday-cap-host .cta-glow{opacity:.35}
-.support-card.holiday-cap-host::before{clip-path:inset(0 round 14px)}
-/* The modal must keep overflow and scrolling. Its single cap sits in a
-   separate layer, following only its opening/closing transition. */
-body > #holiday-dialog-caps{
-  position:fixed!important;
-  inset:0;
-  z-index:1001;
-  overflow:visible;
-  pointer-events:none!important;
-}
-#holiday-dialog-caps > .holiday-cap{
+.motion-enabled .featured-card.motion-tilt.holiday-cap-host > .holiday-cap{transform:translateZ(8px)}
+/* Stable frame: the cap is a sibling of the clipped project dialog,
+   sharing exactly the same hover/entrance transform without rAF polling. */
+#project-modal .project-dialog-frame{
   position:absolute;
-  left:0;
-  top:0;
-  display:block;
-  pointer-events:none!important;
-  filter:drop-shadow(0 2px 2px rgba(112,164,185,.25));
-  will-change:transform;
+  left:50%;top:50%;
+  width:min(1220px,calc(100vw - 40px));
+  max-height:calc(100vh - 40px);
+  transform:translate(-50%,-48%) scale(.985);
+  transition:transform .18s ease;
+  overflow:visible;
 }
-#holiday-dialog-caps > .holiday-cap[hidden]{display:none!important}
-@media(max-width:780px){
-  .modworks-entry-card.holiday-cap-host .modworks-entry-art{border-radius:0 0 18px 18px}
+#project-modal.open .project-dialog-frame{transform:translate(-50%,-50%) scale(1)}
+#project-modal .project-dialog{
+  position:relative;
+  left:auto;top:auto;
+  width:100%;
+  max-height:calc(100vh - 40px);
+  transform:none!important;
+}
+#project-modal .project-dialog-frame > .holiday-cap{z-index:26}
+@media(max-width:980px){
+  #project-modal .project-dialog-frame{width:min(820px,calc(100vw - 32px))}
+}
+@media(max-width:650px){
+  #project-modal .project-dialog-frame{width:calc(100vw - 16px);max-height:calc(100vh - 16px)}
+  #project-modal .project-dialog{max-height:calc(100vh - 16px)}
+  .modworks-entry-card.holiday-cap-host .modworks-entry-art{border-radius:0 0 13px 13px}
 }
 .holiday-host > .holiday-garland{
   position:absolute;
@@ -305,10 +321,6 @@ body > #holiday-dialog-caps{
 .project-dialog.holiday-host > .holiday-garland{z-index:18}
 .section-heading.holiday-host > .holiday-garland{bottom:-35px;height:27px;background-size:440px 27px}
 .support-card.holiday-host > .holiday-garland{bottom:-9px}
-/* The same exterior cap placement is used for Snowy New Year on its own. */
-html .project.snowy-theme::before,
-html .featured-card.snowy-theme::before,
-html .project-dialog.snowy-theme::before{display:none!important}
 @media(max-width:650px){
   #holiday-snow .holiday-fall-near{opacity:.7}
   #holiday-snow .holiday-fall-far{opacity:.55}
