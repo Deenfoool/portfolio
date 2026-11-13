@@ -507,7 +507,7 @@ body > #holiday-santa-flight{
   background:transparent;
 }
 #holiday-santa-flight img{
-  --santa-width:clamp(245px,28vw,460px);
+  --santa-width:clamp(210px,24vw,380px);
   position:absolute;
   top:clamp(94px,16vh,180px);
   left:0;
@@ -521,23 +521,32 @@ body > #holiday-santa-flight{
   filter:drop-shadow(0 0 8px rgba(220,244,255,.22));
   will-change:transform;
   transform-origin:center;
-  animation:holiday-santa-flight 2.4s cubic-bezier(.19,.39,.62,.79) .48s both;
+  animation:holiday-santa-flight 2.4s linear .48s both;
 }
+/* The sleigh follows a shallow, continuous arc: climb toward the centre,
+   then descend toward the left edge. The x positions advance uniformly. */
 @keyframes holiday-santa-flight{
   0%{
-    transform:translate3d(calc(100vw + 60px),-12px,0) scaleX(-1);
+    transform:translate3d(calc(100vw + 60px),32px,0) scaleX(-1);
     opacity:0;
   }
-  7%{opacity:.96}
-  86%{opacity:.96}
+  8%{opacity:.96}
+  12%{transform:translate3d(calc(88vw - 12% + 45.6px),-4px,0) scaleX(-1)}
+  25%{transform:translate3d(calc(75vw - 25% + 30px),-30px,0) scaleX(-1)}
+  38%{transform:translate3d(calc(62vw - 38% + 14.4px),-50px,0) scaleX(-1)}
+  50%{transform:translate3d(calc(50vw - 50%),-57px,0) scaleX(-1)}
+  62%{transform:translate3d(calc(38vw - 62% - 14.4px),-50px,0) scaleX(-1)}
+  75%{transform:translate3d(calc(25vw - 75% - 30px),-30px,0) scaleX(-1)}
+  88%{transform:translate3d(calc(12vw - 88% - 45.6px),-4px,0) scaleX(-1)}
+  92%{opacity:.96}
   100%{
-    transform:translate3d(calc(-1 * var(--santa-width) - 60px),12px,0) scaleX(-1);
+    transform:translate3d(calc(-100% - 60px),32px,0) scaleX(-1);
     opacity:0;
   }
 }
 @media(max-width:600px){
   #holiday-santa-flight img{
-    --santa-width:clamp(165px,42vw,260px);
+    --santa-width:clamp(140px,36vw,215px);
     top:clamp(88px,15vh,145px);
   }
 }
