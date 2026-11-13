@@ -14,6 +14,7 @@
   const SNOW_KEY='portfolio-holiday-snow-v1';
   const CAPS_KEY='portfolio-holiday-caps-v1';
   const SANTA_KEY='portfolio-santa-seen-v1';
+  let winterFrontCount=0;
   let santaSeen=false;
   try{santaSeen=sessionStorage.getItem(SANTA_KEY)==='yes';}catch{}
   let santaFlight=null;
@@ -377,8 +378,10 @@
     root.classList.add(kind==='cold'?'holiday-entering':'holiday-exiting');
     stageDecorDelays();
     const showSanta=kind==='cold'&&!santaSeen;
+    const variant=kind==='cold'?winterFrontCount++%3:0;
     burst=window.PortfolioWeatherFront.start({
       kind,x,y,
+      premiere:showSanta,variant,
       duration:showSanta?3050:undefined,
       onDone:()=>endBurst(token)
     });
@@ -389,7 +392,7 @@
     if(showSanta)launchSanta();
     // Failsafe only; the renderer normally destroys its canvas first.
     transitionTimer=setTimeout(()=>endBurst(token),
-      kind==='cold'?(showSanta?3460:2450):1850);
+      kind==='cold'?(showSanta?3460:2660):2050);
   }
   function applyHoliday(enabled,animated=false){
     desiredHoliday=enabled;

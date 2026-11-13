@@ -45,16 +45,23 @@
     return {
       x:rand(-50,width+120),y:rand(-60,height+80),
       depth,offset:rand(-1,1),phase:rand(0,TAU),
-      size:depth===0?rand(.45,.95):depth===1?rand(.8,1.8):rand(1.5,3.3),
-      speed:depth===0?rand(120,260):depth===1?rand(350,630):rand(750,1130),
-      opacity:depth===0?rand(.17,.36):depth===1?rand(.32,.7):rand(.38,.83),
-      softness:depth===2&&Math.random()<.29
+      size:depth===0?rand(.45,.95):depth===1?rand(.8,1.7):
+        depth===2?rand(1.4,3.1):rand(3,7.5),
+      speed:depth===0?rand(120,245):depth===1?rand(350,610):
+        depth===2?rand(720,1100):rand(1020,1450),
+      opacity:depth===0?rand(.15,.37):depth===1?rand(.34,.69):
+        depth===2?rand(.4,.84):rand(.16,.42),
+      softness:depth===3||depth===2&&Math.random()<.34,
+      crystal:depth===2&&Math.random()<.09,
+      wobble:rand(.5,2)
     };
   }
 
-  function start({kind='cold',x,y,onDone,duration:requestedDuration}={}){
+  function start({kind='cold',x,y,onDone,duration:requestedDuration,premiere=false,variant=0}={}){
     current?.remove();
     const cold=kind!=='warm';
+    const firstStorm=Boolean(cold&&premiere);
+    const style=((Number(variant)||0)%3+3)%3;
     const canvas=document.createElement('canvas');
     canvas.id='holiday-transition';
     canvas.setAttribute('aria-hidden','true');
@@ -64,14 +71,14 @@
     if(!ctx){canvas.remove();return null;}
 
     const duration=Number.isFinite(requestedDuration)
-      ?clamp(requestedDuration,1000,3500):(cold?2120:1550);
+      ?clamp(requestedDuration,1000,3500):(cold?2260:1750);
     const sprite=softSprite(cold?'cold':'warm');
     const cloud=mistSprite(cold?'cold':'warm');
     const state={
       canvas,ctx,kind,live:true,frame:0,
       startAt:0,lastAt:0,duration,
       width:0,height:0,dpr:1,x:0,y:0,maxRadius:0,
-      originX:x,originY:y,particles:[],
+      originX:x,originY:y,particles:[],frostSeeds:[],firstStorm,style,
       remove(){
         if(!state.live)return;
         state.live=false;
@@ -100,9 +107,18 @@
         Math.hypot(state.x,state.height-state.y),
         Math.hypot(state.width-state.x,state.height-state.y)
       )+120;
-      const area=clamp(state.width*state.height/(1400*850),.32,1.25);
-      const quality=state.width<600?.78:1;
-      const counts=cold?[330,360,115]:[95,140,38];
+      const area=clamp(state.width*state.height/(1400*850),.3,1.23);
+      const quality=state.width<600?.64:state.width<920?.84:1;
+      // The first storm has deeper whiteout; later storms alternate gust
+      // directions and density, without repeating Santa or adding loops.
+      const counts=!cold?[100,135,37,7]:
+        firstStorm?[370,440,137,25]:
+        style===0?[315,390,112,20]:
+        style===1?[250,390,130,17]:[370,315,112,25];
+      state.frostSeeds=Array.from({length:Math.round(20*quality)},()=>({
+        x:rand(0,state.width),y:rand(0,state.height),
+        size:rand(3,17),twinkle:rand(0,TAU),corner:Math.random()<.5
+      }));
       if(!state.particles.length){
         counts.forEach((n,d)=>{
           for(let i=0;i<Math.round(n*area*quality);i++){
@@ -148,67 +164,176 @@
       }
       // Cold whiteout peaks briefly, rather than covering text for 2s.
       if(cold){
-        ctx.fillStyle='rgba(216,240,249,'+(.12*volume).toFixed(3)+')';
+        // A brief dense whiteout only at the height of the gust.
+        const whiteout=.07+(firstStorm?.085:.025);
+        ctx.fillStyle='rgba(216,240,249,'+(whiteout*volume).toFixed(3)+')';
         ctx.fillRect(0,0,w,h);
       }
     }
 
+
+    function drawWindBands(front,volume,elapsed){
+      if(!cold||volume<.02)return;
+      const w=state.width,h=state.height;
+      ctx.save();
+      ctx.lineCap='round';
+      // Several curved strands of blowing snow rather than parallel
+      // straight streaks. Bands cross the screen at different heights.
+      const bands=firstStorm?9:style===1?8:6;
+      for(let i=0;i<bands;i++){
+        const drift=(elapsed*(220+i*42)+i*131)%(w+600);
+        const x=w+270-drift;
+        const y=h*(.13+i/(bands+1)*.78)+Math.sin(elapsed*3.2+i*1.7)*24;
+        const edge=smooth((front-Math.hypot(x-state.x,y-state.y)+550)/600);
+        const alpha=(.065+i%3*.022)*volume*edge;
+        if(alpha<.005)continue;
+        ctx.strokeStyle='rgba(229,247,255,'+alpha.toFixed(3)+')';
+        ctx.lineWidth=i%3===0?1.65+(i%4)*.26:.85;
+        ctx.beginPath();
+        ctx.moveTo(x+330,y-30);
+        ctx.bezierCurveTo(x+200,y+35,x-40,y-9,x-260,y+40);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawFrost(progress,volume,elapsed){
+      if(!cold||volume<.02)return;
+      const w=state.width,h=state.height;
+      // A thin, transient crystalline rim. It never remains on the site
+      // once the weather-front canvas is removed.
+      const frost=volume*(firstStorm?.7:.46)*
+        (1-.22*Math.sin(elapsed*4.1));
+      ctx.save();
+      const corners=[
+        [0,0,w*.18,h*.25],
+        [w,0,-w*.18,h*.25],
+        [0,h,w*.16,-h*.22],
+        [w,h,-w*.16,-h*.22]
+      ];
+      for(const [x,y,dx,dy] of corners){
+        const r=Math.max(100,Math.hypot(dx,dy));
+        const g=ctx.createRadialGradient(x,y,0,x,y,r);
+        g.addColorStop(0,'rgba(235,250,255,'+(.15*frost).toFixed(3)+')');
+        g.addColorStop(.37,'rgba(197,233,247,'+(.055*frost).toFixed(3)+')');
+        g.addColorStop(1,'rgba(201,235,249,0)');
+        ctx.fillStyle=g;ctx.fillRect(Math.min(x,x+dx),Math.min(y,y+dy),
+          Math.abs(dx),Math.abs(dy));
+      }
+      ctx.lineCap='round';
+      for(const seed of state.frostSeeds){
+        const edgeX=seed.x<w*.5?0:w;
+        const edgeY=seed.y<h*.5?0:h;
+        const horizontal=seed.corner;
+        const x=horizontal?seed.x:edgeX;
+        const y=horizontal?edgeY:seed.y;
+        const len=seed.size*(.55+.45*Math.sin(elapsed*4+seed.twinkle)**2);
+        ctx.strokeStyle='rgba(231,250,255,'+(.22*frost).toFixed(3)+')';
+        ctx.lineWidth=.8;
+        ctx.beginPath();
+        if(horizontal){
+          const sign=y===0?1:-1;
+          ctx.moveTo(x,y);ctx.lineTo(x+len*.25,y+len*sign);
+          ctx.moveTo(x+len*.25,y+len*sign);
+          ctx.lineTo(x-len*.15,y+len*sign*.75);
+        }else{
+          const sign=x===0?1:-1;
+          ctx.moveTo(x,y);ctx.lineTo(x+len*sign,y-len*.2);
+          ctx.moveTo(x+len*sign,y-len*.2);
+          ctx.lineTo(x+len*sign*.72,y+len*.25);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
     function drawParticles(progress,front,volume,delta,elapsed){
       const w=state.width,h=state.height;
-      const gust=1+.27*Math.sin(elapsed*9)+.13*Math.sin(elapsed*17);
-      const swirl=Math.sin(elapsed*6.6)*30;
-      const coldFactor=cold?1:.78;
+      // Broad gust cycles + small turbulent pulses: every repeat differs.
+      const pulse=.48+.52*Math.sin(elapsed*(style===1?12.2:8.2)+style*1.7);
+      const squall=Math.max(0,Math.sin(elapsed*4.7+style*2.1))**3;
+      const gust=(1+.25*Math.sin(elapsed*9)+.12*Math.sin(elapsed*17)
+        +.32*squall)*(firstStorm?1.12:1);
+      const swirl=Math.sin(elapsed*6.6+style)*42;
+      const coldFactor=cold?1:.76;
+      // A moving eddy twists selected snow around a shifting air pocket.
+      const eddyX=w*(.83-.58*progress);
+      const eddyY=h*(.27+.17*Math.sin(elapsed*2.7+style));
+      const eddyStrength=(style===2||firstStorm?240:120)*(cold?1:.28)*pulse;
       ctx.lineCap='round';
       for(const p of state.particles){
         const depth=p.depth;
         const vel=p.speed*coldFactor*gust;
         p.x-=vel*delta;
-        p.y+=(vel*(depth===0?.31:depth===1?.25:.19)
-            +Math.sin(elapsed*9+p.phase)*48+swirl*p.offset)*delta;
-        p.x+=Math.sin(elapsed*7+p.phase)*9*delta;
-        if(p.x< -110){
-          p.x=w+rand(10,140);
-          p.y=rand(-30,h+50);
-        }else if(p.y>h+110){
-          p.y=rand(-90,-10);
-          p.x=rand(0,w+95);
-        }else if(p.y< -115){
-          p.y=h+rand(5,70);
+        p.y+=(vel*(depth===0?.31:depth===1?.25:depth===2?.19:.15)
+          +Math.sin(elapsed*9+p.phase)*48*p.wobble+swirl*p.offset)*delta;
+        p.x+=Math.sin(elapsed*7+p.phase)*12*delta;
+        if(depth<3&&eddyStrength>0){
+          const dx=p.x-eddyX,dy=p.y-eddyY;
+          const dist2=dx*dx+dy*dy;
+          const field=Math.exp(-dist2/(w<600?36000:95000))*eddyStrength;
+          const norm=Math.sqrt(dist2)+35;
+          p.x+=-dy/norm*field*delta;
+          p.y+= dx/norm*field*delta;
+        }
+        if(p.x< -130){
+          p.x=w+rand(10,165);
+          p.y=rand(-50,h+70);
+        }else if(p.y>h+130){
+          p.y=rand(-110,-15);
+          p.x=rand(0,w+110);
+        }else if(p.y< -125){
+          p.y=h+rand(5,95);
         }
         const distance=Math.hypot(p.x-state.x,p.y-state.y);
-        const edge=smooth((front-distance+95)/155);
+        const edge=smooth((front-distance+115)/165);
         const opacity=p.opacity*volume*edge;
-        if(opacity<.015)continue;
+        if(opacity<.013)continue;
         const size=p.size;
         if(depth===0){
           ctx.fillStyle=cold
             ?'rgba(241,250,255,'+opacity.toFixed(3)+')'
-            :'rgba(255,223,173,'+(opacity*.65).toFixed(3)+')';
+            :'rgba(255,223,173,'+(opacity*.67).toFixed(3)+')';
           ctx.fillRect(p.x,p.y,size,size);
         }else if(depth===1){
           ctx.strokeStyle=cold
             ?'rgba(247,252,255,'+opacity.toFixed(3)+')'
             :'rgba(255,235,197,'+(opacity*.75).toFixed(3)+')';
-          ctx.lineWidth=size*.66;
-          const len=(cold?8:6)+vel*.032;
+          ctx.lineWidth=size*.67;
+          const len=(cold?9:6)+vel*.029;
           ctx.beginPath();
-          ctx.moveTo(p.x+len,p.y-len*.22);
+          ctx.moveTo(p.x+len,p.y-len*.23);
           ctx.lineTo(p.x,p.y);ctx.stroke();
-        }else{
-          const len=(cold?13:9)+vel*.048;
+        }else if(depth===2){
+          const len=(cold?14:9)+vel*.045;
           ctx.strokeStyle=cold
             ?'rgba(255,255,255,'+opacity.toFixed(3)+')'
             :'rgba(255,239,204,'+(opacity*.69).toFixed(3)+')';
-          ctx.lineWidth=size*.75;
+          ctx.lineWidth=size*.78;
           ctx.beginPath();
           ctx.moveTo(p.x+len,p.y-len*.22);
           ctx.lineTo(p.x,p.y);
           ctx.stroke();
           if(p.softness&&sprite){
-            ctx.globalAlpha=opacity*.55;
-            ctx.drawImage(sprite,p.x-size*6,p.y-size*6,size*12,size*12);
+            ctx.globalAlpha=opacity*.44;
+            ctx.drawImage(sprite,p.x-size*5,p.y-size*5,size*10,size*10);
             ctx.globalAlpha=1;
           }
+          if(p.crystal&&cold&&opacity>.17){
+            ctx.strokeStyle='rgba(251,254,255,'+(opacity*.7).toFixed(3)+')';
+            ctx.lineWidth=.7;
+            ctx.beginPath();
+            ctx.moveTo(p.x-size*1.25,p.y);
+            ctx.lineTo(p.x+size*1.25,p.y);
+            ctx.moveTo(p.x,p.y-size*1.25);
+            ctx.lineTo(p.x,p.y+size*1.25);
+            ctx.stroke();
+          }
+        }else if(sprite){
+          // Foreground bokeh makes the lens feel immersed in blown snow.
+          ctx.globalAlpha=opacity*.62;
+          ctx.drawImage(sprite,p.x-size*5,p.y-size*5,size*10,size*10);
+          ctx.globalAlpha=1;
         }
       }
     }
@@ -220,13 +345,15 @@
       const progress=clamp((now-state.startAt)/duration);
       const delta=Math.min(.047,Math.max(.001,(now-state.lastAt)/1000));
       state.lastAt=now;
-      const volume=smooth(progress/.13)*(1-smooth((progress-.76)/.24));
+      const volume=smooth(progress/.12)*(1-smooth((progress-.79)/.21));
       const front=(1-Math.pow(1-clamp(progress/.68),3))*state.maxRadius;
 
       ctx.clearRect(0,0,state.width,state.height);
       if(volume>.001){
         drawFog(progress,front,volume,elapsed);
+        drawWindBands(front,volume,elapsed);
         drawParticles(progress,front,volume,delta,elapsed);
+        drawFrost(progress,volume,elapsed);
         if(cold&&progress>.24&&progress<.86){
           // Veils of blown powder in front of the camera: brief,
           // fluctuating density instead of flat straight CSS lines.
