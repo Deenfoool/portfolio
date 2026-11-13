@@ -1,0 +1,95 @@
+/* Snowy New Year: decorative snow layers. All effects are scoped to this project.
+   Pure CSS; no animation-frame loops, mouse handlers or third-party assets. */
+.project.snowy-theme,
+.featured-card.snowy-theme,
+.project-dialog.snowy-theme{
+  position:relative;
+  isolation:isolate;
+}
+.project.snowy-theme::before,
+.featured-card.snowy-theme::before,
+.project-dialog.snowy-theme::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:43px;
+  z-index:16;
+  pointer-events:none;
+  background:url("assets/snow-cap.svg") top center / 100% 100% no-repeat;
+  filter:drop-shadow(0 3px 4px rgba(160,214,241,.25));
+}
+.project-dialog:not(.snowy-theme) > .snowfall {display:none}
+.snowy-theme > .snowfall{
+  position:absolute;
+  inset:0;
+  z-index:12;
+  display:block;
+  overflow:hidden;
+  pointer-events:none!important;
+  border-radius:inherit;
+  contain:paint;
+}
+.snowy-theme > .snowfall::before,
+.snowy-theme > .snowfall::after{
+  content:"";
+  position:absolute;
+  inset:-240px 0 0;
+  display:block;
+  pointer-events:none;
+  background-repeat:repeat;
+  will-change:transform;
+}
+.snowy-theme > .snowfall::before{
+  opacity:.85;
+  background-size:192px 192px;
+  background-image:
+    radial-gradient(circle at 14px 25px,rgba(255,255,255,.96) 0 1.9px,transparent 2.7px),
+    radial-gradient(circle at 88px 76px,rgba(239,248,255,.88) 0 1.4px,transparent 2px),
+    radial-gradient(circle at 160px 11px,rgba(255,255,255,.98) 0 1.8px,transparent 2.6px),
+    radial-gradient(circle at 49px 132px,rgba(255,255,255,.94) 0 2.2px,transparent 2.8px),
+    radial-gradient(circle at 125px 173px,rgba(255,255,255,.87) 0 1.5px,transparent 2.3px),
+    radial-gradient(circle at 178px 113px,rgba(246,251,255,.85) 0 1.2px,transparent 1.9px),
+    radial-gradient(circle at 16px 181px,rgba(246,251,255,.82) 0 1.3px,transparent 2px),
+    radial-gradient(circle at 116px 34px,rgba(250,253,255,.95) 0 1.6px,transparent 2.4px);
+  animation:snowy-fall-near 8s linear infinite;
+}
+.snowy-theme > .snowfall::after{
+  opacity:.7;
+  background-size:160px 160px;
+  background-image:
+    radial-gradient(circle at 27px 29px,rgba(255,255,255,.75) 0 .8px,transparent 1.6px),
+    radial-gradient(circle at 119px 82px,rgba(255,255,255,.72) 0 1.2px,transparent 1.8px),
+    radial-gradient(circle at 57px 141px,rgba(235,247,255,.78) 0 1px,transparent 1.7px),
+    radial-gradient(circle at 142px 18px,rgba(255,255,255,.74) 0 1px,transparent 1.7px),
+    radial-gradient(circle at 77px 62px,rgba(255,255,255,.6) 0 .9px,transparent 1.6px),
+    radial-gradient(circle at 14px 110px,rgba(244,251,255,.7) 0 1px,transparent 1.7px),
+    radial-gradient(circle at 145px 145px,rgba(255,255,255,.66) 0 1px,transparent 1.7px);
+  animation:snowy-fall-far 14s linear infinite;
+}
+@keyframes snowy-fall-near{
+  from{transform:translate3d(0,0,0)}
+  to{transform:translate3d(0,192px,0)}
+}
+@keyframes snowy-fall-far{
+  from{transform:translate3d(0,0,0)}
+  to{transform:translate3d(0,160px,0)}
+}
+/* Keep the Featured marker and modal close controls unobstructed. */
+.featured-card.snowy-theme .featured-badge{z-index:18}
+.project-dialog.snowy-theme .modal-close{z-index:30}
+@media(max-width:650px){
+  .snowy-theme > .snowfall::before{opacity:.65}
+  .snowy-theme > .snowfall::after{opacity:.5}
+  .project.snowy-theme::before,
+  .featured-card.snowy-theme::before,
+  .project-dialog.snowy-theme::before{height:34px}
+}
+@media(prefers-reduced-motion:reduce){
+  .snowy-theme > .snowfall::before,
+  .snowy-theme > .snowfall::after{
+    animation:none!important;
+    will-change:auto;
+  }
+}

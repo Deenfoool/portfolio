@@ -76,7 +76,7 @@ function render() {
     const image = repoImage(repo);
     const siteUrl = repoSiteUrl(repo);
     return `
-    <article class="project" data-project-name="${esc(repo.name)}">
+    <article class="project${repo.name.toLowerCase() === 'snowy-new-year' ? ' snowy-theme' : ''}" data-project-name="${esc(repo.name)}">
       <a class="project-cover" href="${esc(repo.html_url)}" target="_blank" rel="noreferrer" aria-label="Открыть ${esc(repo.name)} на GitHub">
         <div class="project-image"><img src="${esc(image.custom)}" alt="${esc(repo.name)}" loading="lazy" onerror="this.onerror=function(){this.onerror=null;this.src='${esc(image.fallback)}'};this.src='${esc(image.alternate)}'"><span class="project-index">${String(i+1).padStart(2,'0')}</span></div>
       </a>
@@ -96,6 +96,7 @@ function render() {
           ${siteUrl ? `<a class="project-action site" href="${esc(siteUrl)}" target="_blank" rel="noreferrer">Открыть сайт <span>↗</span></a>` : ''}
         </div>
       </div>
+      ${repo.name.toLowerCase() === 'snowy-new-year' ? '<span class="snowfall" aria-hidden="true"></span>' : ''}
     </article>`;
   }).join('');
 }

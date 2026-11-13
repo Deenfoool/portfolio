@@ -64,7 +64,7 @@
     const downloadable=Releases?.has(r.name)===true, title=r.name;
     const destination=downloadable?Releases.url(r):live||r.html_url;
     const action=downloadable?'Скачать':live?'Открыть сайт':'GitHub';
-    return `<article class="featured-card">
+    return `<article class="featured-card${r.name.toLowerCase()==='snowy-new-year'?' snowy-theme':''}">
       <button class="featured-media" type="button" data-project-detail="${esc(r.name)}">
         <img src="${esc(img.custom)}" alt="${esc(title)}" loading="lazy" onerror="${coverOnError(img)}">
         <span class="featured-badge">FEATURED</span>
@@ -81,6 +81,7 @@
           </div>
         </div>
       </div>
+      ${r.name.toLowerCase()==='snowy-new-year'?'<span class="snowfall" aria-hidden="true"></span>':''}
     </article>`;
   }
 
@@ -254,6 +255,7 @@
     document.querySelector('#modal-topics').innerHTML=tags.length?tags.map(t=>'<span>'+esc(t)+'</span>').join(''):'<span>GitHub project</span>';
     if(modal.hidden) returnFocus=invoker;
     modal.dataset.projectName=r.name;
+    modal.querySelector('.project-dialog')?.classList.toggle('snowy-theme',r.name.toLowerCase()==='snowy-new-year');
     renderModalActions(r);
     modal.hidden=false;
     document.body.classList.add('modal-open');
@@ -270,6 +272,7 @@
     modal.classList.remove('open');
     modal.hidden=true; // Immediate hit-testing/focus reset; no stale animation timer.
     modal.removeAttribute('data-project-name');
+    modal.querySelector('.project-dialog')?.classList.remove('snowy-theme');
     galleryLoading.hidden=true;
     document.body.classList.remove('modal-open');
     const target=returnFocus;
