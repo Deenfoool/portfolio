@@ -59,7 +59,7 @@ const FILTER_ICONS = {
 function renderFilters() {
   filters.innerHTML = getLanguages().map(lang => {
     const icon = FILTER_ICONS[lang];
-    const img = icon ? `<img class="filter-icon ${lang === 'Все' || lang === 'Rust' ? 'filter-icon-mono' : ''}" src="assets/icons/${icon}" alt="" aria-hidden="true" width="17" height="17">` : '';
+    const img = icon ? `<img class="filter-icon ${lang === 'Rust' ? 'filter-icon-mono' : ''}" src="assets/icons/${icon}" alt="" aria-hidden="true" width="17" height="17">` : '';
     return `<button type="button" class="filter ${lang === activeLanguage ? 'active':''}" data-lang="${esc(lang)}" aria-pressed="${lang === activeLanguage}">${img}<span>${esc(languageNames[lang] || lang)}</span></button>`;
   }).join('');
   filters.querySelectorAll('.filter').forEach(btn => btn.addEventListener('click', () => { activeLanguage = btn.dataset.lang; renderFilters(); render(); }));
