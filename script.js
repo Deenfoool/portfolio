@@ -46,10 +46,22 @@ function repoSiteUrl(repo) {
 
 function getLanguages() {
   const langs = [...new Set(repos.map(r => r.language).filter(Boolean))];
-  return ['Все', ...langs.slice(0, 7)];
+  const preferred = ['JavaScript', 'Rust', 'CSharp', 'Java'];
+  return ['Все', ...[...preferred.filter(l => langs.includes(l)), ...langs.filter(l => !preferred.includes(l))].slice(0, 7)];
 }
+const FILTER_ICONS = {
+  'Все': 'all.svg',
+  JavaScript: 'javascript.svg',
+  Rust: 'rust.svg',
+  CSharp: 'csharp.svg',
+  Java: 'java.svg'
+};
 function renderFilters() {
-  filters.innerHTML = getLanguages().map(lang => `<button class="filter ${lang === activeLanguage ? 'active':''}" data-lang="${esc(lang)}">${esc(languageNames[lang] || lang)}</button>`).join('');
+  filters.innerHTML = getLanguages().map(lang => {
+    const icon = FILTER_ICONS[lang];
+    const img = icon ? `<img class="filter-icon ${lang === 'Все' || lang === 'Rust' ? 'filter-icon-mono' : ''}" src="assets/icons/${icon}" alt="" aria-hidden="true" width="17" height="17">` : '';
+    return `<button type="button" class="filter ${lang === activeLanguage ? 'active':''}" data-lang="${esc(lang)}" aria-pressed="${lang === activeLanguage}">${img}<span>${esc(languageNames[lang] || lang)}</span></button>`;
+  }).join('');
   filters.querySelectorAll('.filter').forEach(btn => btn.addEventListener('click', () => { activeLanguage = btn.dataset.lang; renderFilters(); render(); }));
 }
 function render() {
