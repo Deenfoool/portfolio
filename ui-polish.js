@@ -41,6 +41,7 @@
       el.classList.add('footer-github');
       setIconLabel(el, 'github', 'GitHub');
     });
+    root.querySelectorAll?.('.project-action.download').forEach(el => setIconLabel(el, 'download', 'Скачать'));
     root.querySelectorAll?.('.project-action.github').forEach(el => setIconLabel(el, 'github', 'GitHub'));
     root.querySelectorAll?.('.project-action.site').forEach(el => setIconLabel(el, 'external-link', 'Открыть сайт', true));
     root.querySelectorAll?.('.project-action.details').forEach(el => setIconLabel(el, 'expand', 'Подробнее', true));

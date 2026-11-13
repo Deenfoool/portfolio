@@ -7,6 +7,7 @@
     ['snowy-new-year',{title:'Snowy New Year',order:1}]
   ]);
   const highlight=r=>spotlight.get(r.name.toLowerCase());
+  const DOWNLOAD_REPOS=new Set(['padcharge']); // Has a published release.
   const featuredGrid=document.querySelector('#featured-grid');
   const projectsGrid=document.querySelector('#projects-grid');
   const modal=document.querySelector('#project-modal');
@@ -169,14 +170,15 @@
     const r=await ensureRepo(name);
     if(!r)return;
     const live=site(r), tags=visibleTopics(r), highlighted=highlight(r);
-    const destination=highlighted?r.html_url+'/releases/latest':live;
-    const action=highlighted?'Скачать':'Открыть проект';
+    const downloadable=Boolean(highlighted)||DOWNLOAD_REPOS.has(r.name.toLowerCase());
+    const destination=downloadable?r.html_url+'/releases/latest':live;
+    const action=downloadable?'Скачать':'Открыть проект';
     document.querySelector('#modal-title').textContent=highlighted?.title||r.name;
     document.querySelector('#modal-description').textContent=r.description||'Описание проекта пока не добавлено в GitHub. Можно перейти в репозиторий или открыть живую версию проекта.';
     document.querySelector('#modal-language').textContent=r.language||'—';
     document.querySelector('#modal-updated').textContent=rel(r.updated_at);
     document.querySelector('#modal-stars').textContent=String(r.stargazers_count||0);
-    document.querySelector('#modal-format').textContent=highlighted?'Приложение Windows':live?'Live project':'Open source';
+    document.querySelector('#modal-format').textContent=downloadable?'Приложение Windows':live?'Live project':'Open source';
     document.querySelector('#modal-topics').innerHTML=tags.length?tags.map(t=>`<span>${esc(t)}</span>`).join(''):'<span>GitHub project</span>';
     document.querySelector('#modal-actions').innerHTML=`${destination?`<a class="button primary" href="${esc(destination)}" target="_blank" rel="noreferrer">${action} <span>↗</span></a>`:''}<a class="button ghost" href="${esc(r.html_url)}" target="_blank" rel="noreferrer">GitHub <span>↗</span></a>`;
     modal.hidden=false;

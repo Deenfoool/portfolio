@@ -1,6 +1,7 @@
 const USER = 'Deenfoool';
 const API = `https://api.github.com/users/${USER}/repos?per_page=100&sort=updated&direction=desc`;
 const HIDDEN_REPOS = new Set(['portfolio', 'suit-case-glider', 'deenfoool']);
+const DOWNLOAD_REPOS = new Set(['padcharge']); // Repositories with a published GitHub release.
 const grid = document.querySelector('#projects-grid');
 const search = document.querySelector('#search');
 const filters = document.querySelector('#filters');
@@ -90,6 +91,7 @@ function render() {
           <span class="stars">★ ${formatNumber(repo.stargazers_count)}</span>
         </div>
         <div class="project-actions">
+          ${DOWNLOAD_REPOS.has(repo.name.toLowerCase()) ? `<a class="project-action download" href="${esc(repo.html_url)}/releases/latest" target="_blank" rel="noopener noreferrer">Скачать</a>` : ''}
           <a class="project-action github" href="${esc(repo.html_url)}" target="_blank" rel="noreferrer">GitHub <span>↗</span></a>
           ${siteUrl ? `<a class="project-action site" href="${esc(siteUrl)}" target="_blank" rel="noreferrer">Открыть сайт <span>↗</span></a>` : ''}
         </div>
