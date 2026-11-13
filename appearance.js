@@ -322,28 +322,27 @@
   }
   function runBurst(kind){
     const token=++transitionCounter;
-    if(transitionTimer)clearTimeout(transitionTimer);
+    if(transitionTimer){clearTimeout(transitionTimer);transitionTimer=0;}
     burst?.remove();
+    burst=null;
     root.classList.remove('holiday-entering','holiday-exiting');
-    if(reducedMotion){
+    if(reducedMotion||typeof window.PortfolioWeatherFront?.start!=='function'){
       endBurst(token);
       return;
     }
     const rect=holidayButton.getBoundingClientRect();
-    burst=document.createElement('div');
-    burst.id='holiday-transition';
-    burst.className='holiday-transition-'+kind;
-    burst.setAttribute('aria-hidden','true');
-    burst.style.setProperty('--burst-x',(rect.left+rect.width/2)+'px');
-    burst.style.setProperty('--burst-y',(rect.top+rect.height/2)+'px');
-    document.body.appendChild(burst);
+    const x=rect.left+rect.width/2,y=rect.top+rect.height/2;
     root.classList.add(kind==='cold'?'holiday-entering':'holiday-exiting');
     stageDecorDelays();
-    burst.addEventListener('animationend',event=>{
-      // Pseudo-element animationend events may arrive before the layer's own.
-      if(event.target===burst&&!event.pseudoElement)endBurst(token);
+    burst=window.PortfolioWeatherFront.start({
+      kind,x,y,onDone:()=>endBurst(token)
     });
-    transitionTimer=setTimeout(()=>endBurst(token),1400);
+    if(!burst){
+      endBurst(token);
+      return;
+    }
+    // Failsafe only; animation normally completes and destroys its canvas.
+    transitionTimer=setTimeout(()=>endBurst(token),kind==='cold'?2450:1850);
   }
   function applyHoliday(enabled,animated=false){
     desiredHoliday=enabled;
