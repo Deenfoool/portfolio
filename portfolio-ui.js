@@ -2,8 +2,7 @@
   const USER='Deenfoool';
   const API=`https://api.github.com/users/${USER}/repos?per_page=100&sort=updated&direction=desc`;
   const HIDDEN=new Set(['portfolio','suit-case-glider','deenfoool']);
-  // Release buttons do not affect whether a project appears in Featured.
-  const DOWNLOAD_REPOS=new Set(['padcharge','island-lab','snowy-new-year']);
+  const Releases=window.PortfolioReleases;
   const featuredGrid=document.querySelector('#featured-grid');
   const projectsGrid=document.querySelector('#projects-grid');
   const modal=document.querySelector('#project-modal');
@@ -59,8 +58,8 @@
 
   function featuredCard(r){
     const img=cover(r), live=site(r), tags=visibleTopics(r).slice(0,3);
-    const downloadable=DOWNLOAD_REPOS.has(r.name.toLowerCase()), title=r.name;
-    const destination=downloadable?r.html_url+'/releases/latest':live||r.html_url;
+    const downloadable=Releases?.has(r.name)===true, title=r.name;
+    const destination=downloadable?Releases.url(r):live||r.html_url;
     const action=downloadable?'Скачать':live?'Открыть сайт':'GitHub';
     return `<article class="featured-card">
       <button class="featured-media" type="button" data-project-detail="${esc(r.name)}">
@@ -163,26 +162,35 @@
     }catch{return r||null;}
   }
 
+
+  function renderModalActions(r) {
+    const live=site(r);
+    const downloadable=Releases?.has(r.name)===true;
+    const link=(href, text, variant) => '<a class="button ' + variant + '" href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">' + text + ' <span>↗</span></a>';
+    const download=downloadable ? link(Releases.url(r), 'Скачать', 'primary') : '';
+    const website=live ? link(live, 'Открыть сайт', downloadable ? 'ghost' : 'primary') : '';
+    document.querySelector('#modal-format').textContent=downloadable?'Релиз GitHub':live?'Live project':'Open source';
+    document.querySelector('#modal-actions').innerHTML=download+website+link(r.html_url,'GitHub','ghost');
+  }
+
   async function openModal(name){
     const r=await ensureRepo(name);
     if(!r)return;
-    const live=site(r), tags=visibleTopics(r);
-    const downloadable=DOWNLOAD_REPOS.has(r.name.toLowerCase());
-    const destination=downloadable?r.html_url+'/releases/latest':live;
-    const action=downloadable?'Скачать':'Открыть проект';
+    const tags=visibleTopics(r);
     document.querySelector('#modal-title').textContent=r.name;
     document.querySelector('#modal-description').textContent=r.description||'Описание проекта пока не добавлено в GitHub. Можно перейти в репозиторий или открыть живую версию проекта.';
     document.querySelector('#modal-language').textContent=r.language||'—';
     document.querySelector('#modal-updated').textContent=rel(r.updated_at);
     document.querySelector('#modal-stars').textContent=String(r.stargazers_count||0);
-    document.querySelector('#modal-format').textContent=downloadable?'Приложение Windows':live?'Live project':'Open source';
-    document.querySelector('#modal-topics').innerHTML=tags.length?tags.map(t=>`<span>${esc(t)}</span>`).join(''):'<span>GitHub project</span>';
-    document.querySelector('#modal-actions').innerHTML=`${destination?`<a class="button primary" href="${esc(destination)}" target="_blank" rel="noreferrer">${action} <span>↗</span></a>`:''}<a class="button ghost" href="${esc(r.html_url)}" target="_blank" rel="noreferrer">GitHub <span>↗</span></a>`;
+    document.querySelector('#modal-topics').innerHTML=tags.length?tags.map(t=>'<span>'+esc(t)+'</span>').join(''):'<span>GitHub project</span>';
+    modal.dataset.projectName=r.name;
+    renderModalActions(r);
     modal.hidden=false;
     document.body.classList.add('modal-open');
     requestAnimationFrame(()=>modal.classList.add('open'));
     document.querySelector('.modal-close')?.focus({preventScroll:true});
     loadGallery(r);
+    void Releases?.check(r);
   }
 
   function closeModal(){
@@ -220,8 +228,18 @@
     enhanceProjectCards();
   }
 
+
+  Releases?.onChange((name, available) => {
+    const repo=repos.find(r=>r.name.toLowerCase()===name);
+    if (!repo) return;
+    if (isFeatured(repo)) renderFeatured();
+    if (modal && !modal.hidden && modal.dataset.projectName?.toLowerCase()===name) {
+      renderModalActions(repo);
+    }
+  });
+
   repos=readCachedRepos();
-  if(repos.length)renderFeatured();
+  if(repos.length){renderFeatured();Releases?.scan(repos);}
 
   fetch(`${API}&_=${Date.now()}`,{headers:{Accept:'application/vnd.github+json'},cache:'no-store'})
     .then(r=>{if(!r.ok)throw new Error(`GitHub API ${r.status}`);return r.json();})
@@ -229,6 +247,7 @@
       repos=cleanRepos(data);
       renderFeatured();
       enhanceProjectCards();
+      Releases?.scan(repos);
     })
     .catch(()=>{
       enhanceProjectCards();

@@ -92,7 +92,7 @@
       if (isReleaseLink(el)) setIconLabel(el, 'download', 'Скачать');
       else {
         const isGithub = el.href?.includes('github.com');
-        setIconLabel(el, isGithub ? 'github' : 'external-link', isGithub ? 'GitHub' : 'Открыть проект', !isGithub);
+        setIconLabel(el, isGithub ? 'github' : 'external-link', isGithub ? 'GitHub' : 'Открыть сайт', !isGithub);
       }
     });
 

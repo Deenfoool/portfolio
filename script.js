@@ -1,7 +1,7 @@
 const USER = 'Deenfoool';
 const API = `https://api.github.com/users/${USER}/repos?per_page=100&sort=updated&direction=desc`;
 const HIDDEN_REPOS = new Set(['portfolio', 'suit-case-glider', 'deenfoool']);
-const DOWNLOAD_REPOS = new Set(['padcharge']); // Repositories with a published GitHub release.
+const Releases = window.PortfolioReleases;
 const grid = document.querySelector('#projects-grid');
 const search = document.querySelector('#search');
 const filters = document.querySelector('#filters');
@@ -76,7 +76,7 @@ function render() {
     const image = repoImage(repo);
     const siteUrl = repoSiteUrl(repo);
     return `
-    <article class="project">
+    <article class="project" data-project-name="${esc(repo.name)}">
       <a class="project-cover" href="${esc(repo.html_url)}" target="_blank" rel="noreferrer" aria-label="Открыть ${esc(repo.name)} на GitHub">
         <div class="project-image"><img src="${esc(image.custom)}" alt="${esc(repo.name)}" loading="lazy" onerror="this.onerror=function(){this.onerror=null;this.src='${esc(image.fallback)}'};this.src='${esc(image.alternate)}'"><span class="project-index">${String(i+1).padStart(2,'0')}</span></div>
       </a>
@@ -91,7 +91,7 @@ function render() {
           <span class="stars">★ ${formatNumber(repo.stargazers_count)}</span>
         </div>
         <div class="project-actions">
-          ${DOWNLOAD_REPOS.has(repo.name.toLowerCase()) ? `<a class="project-action download" href="${esc(repo.html_url)}/releases/latest" target="_blank" rel="noopener noreferrer">Скачать</a>` : ''}
+          ${Releases?.has(repo.name) ? `<a class="project-action download" href="${esc(Releases.url(repo))}" target="_blank" rel="noopener noreferrer">Скачать</a>` : ""}
           <a class="project-action github" href="${esc(repo.html_url)}" target="_blank" rel="noreferrer">GitHub <span>↗</span></a>
           ${siteUrl ? `<a class="project-action site" href="${esc(siteUrl)}" target="_blank" rel="noreferrer">Открыть сайт <span>↗</span></a>` : ''}
         </div>
@@ -115,12 +115,34 @@ async function load() {
     document.querySelector('#language-count').textContent = new Set(repos.map(r=>r.language).filter(Boolean)).size;
     document.querySelector('#terminal-projects').textContent = repos.slice(0,4).map(r=>r.name).join('  ');
     renderFilters(); render();
+    Releases?.scan(repos);
     fetch(`https://api.github.com/users/${USER}`).then(r=>r.json()).then(u=>{ if(typeof u.followers === 'number') document.querySelector('#follower-count').textContent = formatNumber(u.followers); }).catch(()=>{});
   } catch (error) {
     grid.innerHTML = `<div class="loading-card">Не удалось загрузить GitHub. <a href="https://github.com/${USER}" target="_blank" rel="noreferrer" style="color:#a3e635">Открыть профиль ↗</a></div>`;
     document.querySelector('#terminal-projects').textContent = 'github api unavailable';
   }
 }
+
+Releases?.onChange((name, available) => {
+  const repo = repos.find(r => r.name.toLowerCase() === name);
+  if (!repo) return;
+  grid.querySelectorAll('.project[data-project-name]').forEach(card => {
+    if (card.dataset.projectName.toLowerCase() !== name) return;
+    const actions = card.querySelector('.project-actions');
+    if (!actions) return;
+    const oldButton = actions.querySelector('.project-action.download');
+    if (!available) { oldButton?.remove(); return; }
+    if (oldButton) return;
+    const link = document.createElement('a');
+    link.className = 'project-action download';
+    link.href = Releases.url(repo);
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = 'Скачать';
+    actions.insertBefore(link, actions.querySelector('.project-action.github'));
+  });
+});
+
 search.addEventListener('input', render);
 document.querySelector('#year').textContent = new Date().getFullYear();
 load();
